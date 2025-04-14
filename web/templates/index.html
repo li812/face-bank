@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Recognition</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            color: #333;
+        }
+        a {
+            text-decoration: none;
+            color: white;
+            background-color: #007bff;
+            padding: 10px 20px;
+            margin: 10px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        a:hover {
+            background-color: #0056b3;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            max-width: 400px;
+            margin: auto;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="main">
+        <div class="container">
+            <h1>Welcome to Face Recognition System</h1>
+            <a href="{% url 'userapp:register' %}">Register</a>
+            <a href="{% url 'userapp:login' %}">Login</a>
+        </div>
+    </div>
+</body>
+</html>

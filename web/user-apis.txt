@@ -1,0 +1,160 @@
+# User API Documentation
+
+## 1. Register User
+
+- **Endpoint:** `/register/`
+- **Method:** POST
+- **Body (multipart/form-data):**
+    - `username`: string
+    - `first_name`: string
+    - `last_name`: string
+    - `gender`: string
+    - `address`: string
+    - `email`: string
+    - `phone`: string
+    - `city`: string
+    - `state`: string
+    - `country`: string
+    - `image`: file (JPEG/PNG, face photo)
+- **Response (JSON):**
+    - Success: `{ "message": "User registered successfully!", "redirect": "/login/" }`
+    - Failure: `{ "message": "Error message" }`
+
+---
+
+## 2. Login with Face Verification
+
+- **Endpoint:** `/login/`
+- **Method:** POST
+- **Body (multipart/form-data):**
+    - `username`: string
+    - `image`: file (JPEG/PNG, face photo)
+- **Response (JSON):**
+    - Success: `{ "message": "Face verified successfully!", "redirect": "/userPage/" }`
+    - Failure: `{ "message": "Face verification failed. Similarity: 0.65", "success": false }`
+
+---
+
+## 3. Add Family Member
+
+- **Endpoint:** `/register_family/`
+- **Method:** POST
+- **Body (multipart/form-data):**
+    - `username`: string
+    - `first_name`: string
+    - `last_name`: string
+    - `gender`: string
+    - `address`: string
+    - `email`: string
+    - `phone`: string
+    - `city`: string
+    - `state`: string
+    - `country`: string
+    - `image`: file (JPEG/PNG, face photo)
+- **Response (JSON):**
+    - Success: `{ "message": "Family member registered successfully!" }`
+    - Failure: `{ "message": "Error message" }`
+
+---
+
+## 4. Family Member Login
+
+- **Endpoint:** `/family_login/`
+- **Method:** POST
+- **Body (multipart/form-data):**
+    - `username`: string
+    - `image`: file (JPEG/PNG, face photo)
+- **Response (JSON):**
+    - Success: `{ "message": "Face verified successfully!", "redirect": "/userPage/" }`
+    - Failure: `{ "message": "Face verification failed.", "success": false }`
+
+---
+
+## 5. Add Account
+
+- **Endpoint:** `/addAccount`
+- **Method:** POST
+- **Body (form-data):**
+    - `account_number`: string
+    - `branch_name`: branch ID (integer)
+    - `username`: username (string)
+    - `account_type`: string
+    - `balance`: number
+- **Response:** Redirects to user page or returns error message.
+
+---
+
+## 6. View Account
+
+- **Endpoint:** `/userAccount`
+- **Method:** GET
+- **Response:** Renders user account details (HTML or JSON if requested).
+
+---
+
+## 7. Apply Loan
+
+- **Endpoint:** `/applyLoan`
+- **Method:** POST
+- **Body (form-data):**
+    - `account_number`: account ID (integer)
+    - `loan_amount`: number
+    - `branch_name`: branch ID (integer)
+    - `username`: username (string)
+- **Response:** Redirects to user page or returns error message.
+
+---
+
+## 8. Make Transaction (Initiate)
+
+- **Endpoint:** `/initiate_transaction/`
+- **Method:** POST
+- **Body (form-data):**
+    - Transaction details (see frontend form)
+- **Response:** Redirects to OTP verification or returns error.
+
+---
+
+## 9. Verify Transaction (OTP)
+
+- **Endpoint:** `/verify_transaction/`
+- **Method:** POST
+- **Body (form-data):**
+    - `otp`: integer
+- **Response:** Renders success/failure (HTML or JSON if requested).
+
+---
+
+## 10. View Transactions
+
+- **Endpoint:** `/user_transaction`
+- **Method:** GET
+- **Response:** Renders transaction history (HTML or JSON if requested).
+
+---
+
+## 11. Add Complaint
+
+- **Endpoint:** `/user_complaint`
+- **Method:** POST
+- **Body (form-data):**
+    - `username`: string
+    - `complaint`: string
+- **Response:** Redirects to user page.
+
+---
+
+## 12. View Complaint Reply
+
+- **Endpoint:** `/view_user_complaint_replay`
+- **Method:** GET
+- **Response:** Renders complaint replies (HTML or JSON if requested).
+
+---
+
+## Notes
+
+- All endpoints expect session authentication (except register/login).
+- For face verification endpoints, always send an image file.
+- For mobile apps, use `multipart/form-data` for file uploads.
+- Error messages are returned as JSON or via HTTP redirects (for web).
