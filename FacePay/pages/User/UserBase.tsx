@@ -14,6 +14,7 @@ import ViewTransactions from './ViewTransactions'
 import ApplyLoan from './ApplyLoan'
 import SendComplaints from './SendComplaints'
 import ManageComplaints from './ManageComplaints'
+import ExchangeRate from './ExchangeRate'
 
 const Stack = createNativeStackNavigator()
 const Tab = createBottomTabNavigator()
@@ -30,7 +31,7 @@ const TabScreens = ({ username, first_name, last_name, navigation }) => (
         <BlurView tint="light" intensity={100} style={StyleSheet.absoluteFill} />
       ),
       tabBarIcon: ({ color, focused }) => {
-        const size = 34
+        const size = 38
         if (route.name === 'Dashboard') {
           return <MaterialIcons name="dashboard" size={size} color={color} />
         }
@@ -48,7 +49,8 @@ const TabScreens = ({ username, first_name, last_name, navigation }) => (
         route.name === 'ViewTransactions' ||
         route.name === 'ApplyLoan' ||
         route.name === 'SendComplaints' ||
-        route.name === 'ManageComplaints'
+        route.name === 'ManageComplaints' ||
+        route.name === 'ExchangeRate'
           ? null
           : <TouchableOpacity {...props} />,
     })}
@@ -97,6 +99,12 @@ const TabScreens = ({ username, first_name, last_name, navigation }) => (
       options={{ tabBarButton: () => null }}
     >
       {props => <ManageComplaints {...props} username={username} />}
+    </Tab.Screen>
+    <Tab.Screen
+      name="ExchangeRate"
+      options={{ tabBarButton: () => null }}
+    >
+      {props => <ExchangeRate {...props} />}
     </Tab.Screen>
   </Tab.Navigator>
 )

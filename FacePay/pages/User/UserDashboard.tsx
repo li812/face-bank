@@ -9,6 +9,7 @@ import { BlurView } from 'expo-blur'
 
 import AddAccount from './AddAccount'
 import ViewAccount from './ViewAccount'
+import ExchangeRate from './ExchangeRate'
 
 const { width, height } = Dimensions.get('window')
 
@@ -141,12 +142,9 @@ const UserDashboard = ({ username, navigation }) => {
             <MaterialIcons name="receipt-long" size={36} color="#00abe9" style={styles.cardIcon} />
             <Text style={styles.cardText}>Transactions</Text>
           </TouchableOpacity>
-
-
         </View>
 
         <View style={styles.cardsRow}>
-          
           <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('AddFamily')}>
           <BlurView tint="light" intensity={100} style={StyleSheet.absoluteFill} />
           <MaterialIcons name="group-add" size={36} color="#00abe9" style={styles.cardIcon} />
@@ -157,11 +155,15 @@ const UserDashboard = ({ username, navigation }) => {
             <MaterialIcons name="account-balance" size={36} color="#00abe9" style={styles.cardIcon} />
             <Text style={styles.cardText}>Apply Loan</Text>
           </TouchableOpacity>
-
+          <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('ExchangeRate')}>
+            <BlurView tint="light" intensity={100} style={StyleSheet.absoluteFill} />
+            <MaterialIcons name="currency-exchange" size={36} color="#00abe9" style={styles.cardIcon} />
+            <Text style={styles.cardText}>Exchange Rate</Text>
+          </TouchableOpacity>
         </View>
-        <View style={styles.cardsRow}>
 
-        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('SendComplaints')}>
+        <View style={styles.cardsRow}>
+          <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('SendComplaints')}>
             <BlurView tint="light" intensity={100} style={StyleSheet.absoluteFill} />
             <MaterialIcons name="report-problem" size={36} color="#00abe9" style={styles.cardIcon} />
             <Text style={styles.cardText}>Send Complaint</Text>
@@ -172,7 +174,6 @@ const UserDashboard = ({ username, navigation }) => {
             <MaterialCommunityIcons name="account-cog-outline" size={36} color="#00abe9" style={styles.cardIcon} />
             <Text style={styles.cardText}>Manage Complaints</Text>
           </TouchableOpacity>
-
         </View>
       </ScrollView>
     </SafeAreaView>
