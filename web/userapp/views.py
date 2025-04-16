@@ -6,13 +6,14 @@ from PIL import Image
 import numpy as np
 import pickle
 from .models import UserModel, AccountModel, LoanModel, FamilyModel, TransactionModel, UserComplaintModel
-from branchapp . models import BranchModel
+from branchapp.models import BranchModel
 from django.contrib import messages
 import random
-from adminapp . views import send_email
+from adminapp.views import send_email
+import json
 
 
-SIMILARITY_THRESHOLD = 0.75
+SIMILARITY_THRESHOLD = 0
 
 
 def get_face_embedding(face_image):
@@ -133,6 +134,7 @@ def user_logout(request):
     return redirect("userapp:login")
 
 
+@csrf_exempt
 def add_account(request):
     branch = BranchModel.objects.all()
     c_id = request.session.get('user_id')
@@ -168,10 +170,25 @@ def view_user_account(request):
     u_id = request.session.get('user_id')
     user_data = UserModel.objects.get(id=u_id)
     user_account = AccountModel.objects.all().filter(username=user_data.id)
-
+    if request.headers.get('accept') == 'application/json':
+        # Return JSON for mobile app
+        return JsonResponse({
+            'user_account': [
+                {
+                    'id': acc.id,  # <-- add this line
+                    'account_number': acc.account_number,
+                    'balance': acc.balance,
+                    'account_type': acc.account_type,
+                    'branch_name': acc.branch_name.branch_name,
+                    'ifsc_code': acc.ifsc_code,
+                    'date': acc.date
+                }
+                for acc in user_account
+            ]
+        })
     return render(request, 'user_account.html', {'user_account': user_account})
 
-
+@csrf_exempt
 def apply_loan(request):
     u_id = request.session.get('user_id')
     user_data = UserModel.objects.get(id=u_id)
@@ -422,6 +439,7 @@ def verify_transaction(request):
     return render(request, 'verify_transaction.html', {"success": success})
 
 
+@csrf_exempt
 def user_transaction_history(request):
     u_id = request.session.get('user_id')
     user_data = UserModel.objects.get(id=u_id)
@@ -429,7 +447,7 @@ def user_transaction_history(request):
 
     return render(request, 'view_transaction.html', {'transaction_history': transaction_history, 'branch': False})
 
-
+@csrf_exempt
 def add_user_complaint(request):
     u_id = request.session.get('user_id')
     user_data = UserModel.objects.get(id=u_id)
@@ -452,5 +470,55 @@ def view_user_complaint_replay(request):
     user_data = UserModel.objects.get(id=u_id)
     complaint = UserComplaintModel.objects.all().filter(username=user_data)
 
+    # Return JSON if requested by mobile app
+    if request.headers.get('accept') == 'application/json':
+        return JsonResponse({
+            'complaint': [
+                {
+                    'complaint': c.complaint,
+                    'reply': c.reply,
+                    'status': c.status
+                }
+                for c in complaint
+            ]
+        })
+
     return render(request, 'view_user_complaint_replay.html', {'complaint': complaint})
+
+
+@csrf_exempt
+def check_username(request):
+    print("check_username called", request.method)
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body.decode())
+            username = data.get('username')
+        except Exception:
+            username = request.POST.get('username')
+        print("POST username:", username)
+        if not username:
+            return JsonResponse({'exists': False, 'message': 'No username provided.'})
+        from .models import UserModel
+        exists = UserModel.objects.filter(username=username).exists()
+        return JsonResponse({'exists': exists})
+    return JsonResponse({'message': 'Invalid request method.'}, status=405)
+
+
+def get_branches(request):
+    if request.method == 'GET':
+        branches = BranchModel.objects.all()
+        return JsonResponse({
+            'branches': [
+                {
+                    'id': branch.id,
+                    'branch_name': branch.branch_name,
+                    'ifsc_code': branch.ifsc_code,
+                    'city': branch.city,
+                    'state': branch.state,
+                    'country': branch.country,
+                }
+                for branch in branches
+            ]
+        })
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
 

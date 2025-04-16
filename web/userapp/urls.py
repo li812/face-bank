@@ -20,6 +20,6 @@ urlpatterns = [
     path('user_transaction', views.user_transaction_history, name='user_transaction'),
     path('user_complaint', views.add_user_complaint, name='user_complaint'),
     path('view_user_complaint_replay', views.view_user_complaint_replay, name='view_user_complaint_replay'),
-
-
+    path('check_username/', views.check_username, name='check_username'),
+    path('branches', views.get_branches, name='branches'),
 ]
