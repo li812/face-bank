@@ -445,6 +445,25 @@ def user_transaction_history(request):
     user_data = UserModel.objects.get(id=u_id)
     transaction_history = TransactionModel.objects.all().filter(username=user_data)
 
+    # Return JSON if requested by mobile app
+    if request.headers.get('accept') == 'application/json':
+        return JsonResponse({
+            'transaction_history': [
+                {
+                    'id': t.id,
+                    'sender_account': t.account_number.account_number,
+                    'username': t.username.username,
+                    'receiver_account_number': t.receiver_account_number,
+                    'receiver_name': t.receiver_name,
+                    'branch_name': t.branch_name.branch_name,
+                    'amount': float(t.amount),
+                    'is_verified': t.is_verified,
+                    'date': t.date.strftime('%Y-%m-%d %H:%M:%S'),
+                }
+                for t in transaction_history
+            ]
+        })
+
     return render(request, 'view_transaction.html', {'transaction_history': transaction_history, 'branch': False})
 
 @csrf_exempt
