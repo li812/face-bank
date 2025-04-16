@@ -32,6 +32,7 @@ const UserMakeTransaction = ({ navigation, username }) => {
   const [permission, requestPermission] = useCameraPermissions()
   const [isCameraActive, setIsCameraActive] = useState(false)
   const cameraRef = useRef(null)
+  const [facing, setFacing] = useState(CameraType?.front || 'front')
 
   // Fetch accounts and branches
   useEffect(() => {
@@ -176,7 +177,7 @@ const UserMakeTransaction = ({ navigation, username }) => {
         <CameraView
           ref={cameraRef}
           style={styles.camera}
-          facing={CameraType.front}
+          facing={facing}
         />
         <TouchableOpacity style={styles.captureButton} onPress={handleCaptureFace} disabled={submitting}>
           <Text style={styles.captureButtonText}>{submitting ? 'Verifying...' : 'Capture & Verify'}</Text>
@@ -486,11 +487,11 @@ const styles = StyleSheet.create({
   },
   input: {
     width: '100%',
-    backgroundColor: 'rgba(255,255,255,0.66)',
+    backgroundColor: 'rgba(255, 255, 255, 0.47)',
     borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(0, 110, 157, 0.42)',
-    color: '#222',
+    color: '#fff',
     paddingHorizontal: 16,
     paddingVertical: 12,
     marginBottom: 12,

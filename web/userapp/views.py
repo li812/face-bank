@@ -366,10 +366,9 @@ def transaction_face_verification(request):
         similarity = 1 - result['distance']
 
         if similarity > SIMILARITY_THRESHOLD:
-            return JsonResponse({"message": "Face verified successfully!", "redirect": "/verify_transaction/"})
+            return JsonResponse({"message": "Face verified successfully!", "success": True, "redirect": "/verify_transaction/"})
         else:
-            return JsonResponse(
-                {"message": f"Face verification failed. Similarity: {similarity:.2f}", "success": False})
+            return JsonResponse({"message": f"Face verification failed. Similarity: {similarity:.2f}", "success": False})
 
     return render(request, 'transaction_face_verification.html')
 
@@ -423,7 +422,7 @@ def initiate_transaction(request):
 
     return render(request, 'initiate_transaction.html', {'user_account': user_account, 'family': family})
 
-
+@csrf_exempt
 def verify_transaction(request):
     t_id = request.session.get('transaction_id')
 
@@ -438,6 +437,7 @@ def verify_transaction(request):
     if request.method == 'POST':
         entered_otp = int(request.POST['otp'])
         if entered_otp == transaction.otp:
+            print(f"{entered_otp} : {transaction.otp}")
             transaction.is_verified = True
             transaction.save()
 
@@ -560,4 +560,5 @@ def get_branches(request):
             ]
         })
     return JsonResponse({'error': 'Invalid request method'}, status=405)
+
 
