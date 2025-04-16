@@ -15,6 +15,7 @@ import ApplyLoan from './ApplyLoan'
 import SendComplaints from './SendComplaints'
 import ManageComplaints from './ManageComplaints'
 import ExchangeRate from './ExchangeRate'
+import AddFamily from './AddFamily'
 
 const Stack = createNativeStackNavigator()
 const Tab = createBottomTabNavigator()
@@ -50,7 +51,8 @@ const TabScreens = ({ username, first_name, last_name, navigation }) => (
         route.name === 'ApplyLoan' ||
         route.name === 'SendComplaints' ||
         route.name === 'ManageComplaints' ||
-        route.name === 'ExchangeRate'
+        route.name === 'ExchangeRate' ||
+        route.name === 'AddFamily'
           ? null
           : <TouchableOpacity {...props} />,
     })}
@@ -106,6 +108,12 @@ const TabScreens = ({ username, first_name, last_name, navigation }) => (
     >
       {props => <ExchangeRate {...props} />}
     </Tab.Screen>
+    <Tab.Screen
+      name="AddFamily"
+      options={{ tabBarButton: () => null }}
+    >
+      {props => <AddFamily {...props} username={username} />}
+    </Tab.Screen>
   </Tab.Navigator>
 )
 
@@ -117,6 +125,7 @@ const UserBase = ({ route, navigation }: any) => {
       <Stack.Screen name="Tabs">
         {props => <TabScreens {...props} username={username} first_name={first_name} last_name={last_name} navigation={navigation} />}
       </Stack.Screen>
+      <Stack.Screen name="AddFamily" component={AddFamily} />
     </Stack.Navigator>
   )
 }

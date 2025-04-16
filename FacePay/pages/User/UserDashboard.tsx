@@ -6,14 +6,17 @@ import { API_URL } from '../../config'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { StatusBar } from 'expo-status-bar'
 import { BlurView } from 'expo-blur'
+import { useNavigation } from '@react-navigation/native'
 
 import AddAccount from './AddAccount'
 import ViewAccount from './ViewAccount'
 import ExchangeRate from './ExchangeRate'
+import AddFamily from './AddFamily'
 
 const { width, height } = Dimensions.get('window')
 
-const UserDashboard = ({ username, navigation }) => {
+const UserDashboard = ({ username }) => {
+  const navigation = useNavigation()
   const [accounts, setAccounts] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -175,6 +178,8 @@ const UserDashboard = ({ username, navigation }) => {
             <Text style={styles.cardText}>Manage Complaints</Text>
           </TouchableOpacity>
         </View>
+
+
       </ScrollView>
     </SafeAreaView>
   )
@@ -302,6 +307,20 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 0.5,
     textAlign: 'center'
+  },
+  actionButton: {
+    alignSelf: 'center',
+    marginTop: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    backgroundColor: '#00abe9',
+  },
+  actionButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
   }
 })
 

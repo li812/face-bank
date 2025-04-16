@@ -242,18 +242,27 @@ def apply_loan(request):
 def register_family_member(request):
     c_id = request.session.get('user_id')
     user_data = UserModel.objects.get(id=c_id)
-
     family_members_data = FamilyModel.objects.all().filter(account_username=user_data)
 
+    # Always return JSON for mobile app
     if family_members_data:
         print("pass")
-        return HttpResponse('<h3>You Can Only Add One Family member. You have already add one family member</h3>')
+        if request.headers.get('accept') == 'application/json':
+            return JsonResponse({"message": "You can only add one family member. You have already added one."})
+        else:
+            return HttpResponse('<h3>You Can Only Add One Family member. You have already add one family member</h3>')
     else:
         print("creating")
         if request.method == 'POST':
             username = request.POST.get('username')
             account_username_ = request.POST.get('account_username')
-            account_username = UserModel.objects.get(username=account_username_)
+            if not account_username_:
+                return JsonResponse({"message": "Missing account_username."}, status=400)
+            try:
+                account_username = UserModel.objects.get(username=account_username_)
+            except UserModel.DoesNotExist:
+                return JsonResponse({"message": "Account owner not found."}, status=404)
+            print('Received account_username:', account_username_)
             name = request.POST.get('name')
             email = request.POST.get('email')
             phone = request.POST.get('phone')
