@@ -125,6 +125,25 @@ def user_page(request):
     user_data = UserModel.objects.get(id=c_id)
     primary_user = request.session['primary_user']
 
+    # Return JSON for mobile app
+    if request.headers.get('accept') == 'application/json':
+        return JsonResponse({
+            'user_data': {
+                'username': user_data.username,
+                'first_name': user_data.first_name,
+                'last_name': user_data.last_name,
+                'gender': user_data.gender,
+                'address': user_data.address,
+                'email': user_data.email,
+                'phone': user_data.phone,
+                'city': user_data.city,
+                'state': user_data.state,
+                'country': user_data.country,
+                'date': str(user_data.date),
+            },
+            'primary_user': primary_user
+        })
+
     return render(request, 'user_page.html', {'user_data': user_data, 'primary_user': primary_user})
 
 

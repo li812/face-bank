@@ -18,7 +18,7 @@ import ManageComplaints from './ManageComplaints'
 const Stack = createNativeStackNavigator()
 const Tab = createBottomTabNavigator()
 
-const TabScreens = ({ username, navigation }) => (
+const TabScreens = ({ username, first_name, last_name, navigation }) => (
   <Tab.Navigator
     initialRouteName="Dashboard"
     screenOptions={({ route }) => ({
@@ -54,7 +54,7 @@ const TabScreens = ({ username, navigation }) => (
     })}
   >
     <Tab.Screen name="Dashboard">
-      {props => <UserDashboard {...props} username={username} />}
+      {props => <UserDashboard {...props} username={username} first_name={first_name} last_name={last_name} />}
     </Tab.Screen>
     <Tab.Screen name="SendMoney">
       {props => <UserMakeTransaction {...props} username={username} />}
@@ -102,12 +102,12 @@ const TabScreens = ({ username, navigation }) => (
 )
 
 const UserBase = ({ route, navigation }: any) => {
-  const { username } = route.params || {}
+  const { username, first_name, last_name } = route.params || {}
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Tabs">
-        {props => <TabScreens {...props} username={username} navigation={navigation} />}
+        {props => <TabScreens {...props} username={username} first_name={first_name} last_name={last_name} navigation={navigation} />}
       </Stack.Screen>
     </Stack.Navigator>
   )

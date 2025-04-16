@@ -10,8 +10,6 @@ import { BlurView } from 'expo-blur'
 import AddAccount from './AddAccount'
 import ViewAccount from './ViewAccount'
 
-
-
 const { width, height } = Dimensions.get('window')
 
 const UserDashboard = ({ username, navigation }) => {
@@ -19,6 +17,21 @@ const UserDashboard = ({ username, navigation }) => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [refreshing, setRefreshing] = useState(false)
+  const [fullName, setFullName] = useState('')
+
+  // Fetch user details for full name
+  const fetchUserDetails = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/userPage`, { headers: { Accept: 'application/json' } })
+      if (res.data && res.data.user_data) {
+        setFullName(`${res.data.user_data.first_name} ${res.data.user_data.last_name}`)
+      } else {
+        setFullName(username)
+      }
+    } catch {
+      setFullName(username)
+    }
+  }
 
   const fetchAccounts = async () => {
     try {
@@ -36,6 +49,7 @@ const UserDashboard = ({ username, navigation }) => {
   }
 
   useEffect(() => {
+    fetchUserDetails()
     fetchAccounts()
   }, [])
 
@@ -61,7 +75,7 @@ const UserDashboard = ({ username, navigation }) => {
         <View style={styles.headerContainer}>
           <BlurView tint="light" intensity={100} style={StyleSheet.absoluteFill} />
           <MaterialIcons name="account-circle" size={72} color="#00abe9" style={styles.avatar} />
-          <Text style={styles.welcome}>Welcome, {username}!</Text>
+          <Text style={styles.welcome}>Welcome, {fullName}!</Text>
           <Text style={styles.balanceLabel}>Available Balance</Text>
           {loading ? (
             <ActivityIndicator color="#00abe9" size="large" style={{ marginVertical: 12 }} />
