@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Dimensions, Platform, Image, Alert } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Dimensions, Platform, Image } from 'react-native'
 import { BlurView } from 'expo-blur'
 import axios from 'axios'
 import { API_URL } from '../../config'
@@ -8,10 +8,13 @@ import { StatusBar } from 'expo-status-bar'
 
 const { width, height } = Dimensions.get('window')
 
+const FILTERS = ['All', 'Pending', 'Processing', 'Completed']
+
 const ManageComplaints = ({ navigation, username }) => {
   const [complaints, setComplaints] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [filter, setFilter] = useState('All')
 
   const fetchComplaints = async () => {
     try {
@@ -35,6 +38,11 @@ const ManageComplaints = ({ navigation, username }) => {
     fetchComplaints()
   }
 
+  // Filter complaints based on selected filter
+  const filteredComplaints = filter === 'All'
+    ? complaints
+    : complaints.filter(item => item.status === filter)
+
   return (
     <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
       <StatusBar style="light" backgroundColor="transparent" translucent />
@@ -53,14 +61,29 @@ const ManageComplaints = ({ navigation, username }) => {
             <Text style={{ color: '#00abe9', fontWeight: 'bold' }}>Refresh</Text>
           </TouchableOpacity>
         </View>
+        {/* Filter Buttons */}
+        <View style={styles.filterRow}>
+          {FILTERS.map(f => (
+            <TouchableOpacity
+              key={f}
+              style={[
+                styles.filterButton,
+                filter === f && styles.filterButtonActive
+              ]}
+              onPress={() => setFilter(f)}
+            >
+              <Text style={{ color: filter === f ? '#fff' : '#00abe9', fontWeight: 'bold' }}>{f}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
         {loading ? (
           <ActivityIndicator color="#00abe9" size="large" style={{ marginTop: 32 }} />
         ) : error ? (
           <Text style={[styles.errorText, { marginTop: 32 }]}>{error}</Text>
-        ) : complaints.length === 0 ? (
+        ) : filteredComplaints.length === 0 ? (
           <Text style={[styles.errorText, { marginTop: 32 }]}>No complaints found.</Text>
         ) : (
-          complaints.map((item, idx) => (
+          filteredComplaints.map((item, idx) => (
             <View style={styles.complaintCard} key={idx}>
               <BlurView tint="light" intensity={80} style={StyleSheet.absoluteFill} />
               <Text style={styles.label}>Complaint:</Text>
@@ -75,6 +98,9 @@ const ManageComplaints = ({ navigation, username }) => {
     </SafeAreaView>
   )
 }
+
+
+
 
 const styles = StyleSheet.create({
   backgroundImage: {
@@ -175,7 +201,28 @@ const styles = StyleSheet.create({
     color: 'red',
     fontSize: 16,
     textAlign: 'center'
-  }
+  },
+  filterRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 10,
+
+    gap: 5,
+  },
+  filterButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#00abe9',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    marginHorizontal: 1,
+  },
+  filterButtonActive: {
+    backgroundColor: '#00abe9',
+    borderColor: '#00abe9',
+  },
+
 })
 
 export default ManageComplaints
