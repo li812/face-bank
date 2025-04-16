@@ -131,7 +131,10 @@ const UserMakeTransaction = ({ navigation, username }) => {
     try {
       const data = new FormData()
       data.append('otp', otp)
-      const res = await axios.post(`${API_URL}/verify_transaction/`, data)
+      const res = await axios.post(`${API_URL}/verify_transaction/`, data, {
+        headers: { Accept: 'application/json' }
+      })
+      console.log('OTP verify response:', res.data)
       if (res.data && (res.data.success || res.data.message?.toLowerCase().includes('success'))) {
         setSuccess(true)
       } else {
@@ -156,6 +159,22 @@ const UserMakeTransaction = ({ navigation, username }) => {
     setFaceVerified(false)
     setOtp('')
     setSuccess(false)
+    navigation.navigate('Dashboard')
+  }
+
+  const handleCancel = () => {
+    setCurrentStep(1)
+    setForm({
+      account_number: '',
+      receiver_account_number: '',
+      receiver_name: '',
+      branch_name: '',
+      amount: ''
+    })
+    setFaceVerified(false)
+    setOtp('')
+    setSuccess(false)
+    setIsCameraActive(false)
     navigation.navigate('Dashboard')
   }
 
@@ -234,6 +253,12 @@ const UserMakeTransaction = ({ navigation, username }) => {
                 >
                   <Text style={styles.nextButtonText}>Next</Text>
                 </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.cancelButton, { marginTop: 12 }]}
+                  onPress={handleCancel}
+                >
+                  <Text style={styles.cancelButtonText}>Cancel Transaction</Text>
+                </TouchableOpacity>
               </View>
             )}
             {currentStep === 2 && (
@@ -265,6 +290,12 @@ const UserMakeTransaction = ({ navigation, username }) => {
                     <Text style={styles.nextButtonText}>Next</Text>
                   </TouchableOpacity>
                 </View>
+                <TouchableOpacity
+                  style={[styles.cancelButton, { marginTop: 12 }]}
+                  onPress={handleCancel}
+                >
+                  <Text style={styles.cancelButtonText}>Cancel Transaction</Text>
+                </TouchableOpacity>
               </View>
             )}
             {currentStep === 3 && (
@@ -296,6 +327,12 @@ const UserMakeTransaction = ({ navigation, username }) => {
                     <Text style={styles.nextButtonText}>Next</Text>
                   </TouchableOpacity>
                 </View>
+                <TouchableOpacity
+                  style={[styles.cancelButton, { marginTop: 12 }]}
+                  onPress={handleCancel}
+                >
+                  <Text style={styles.cancelButtonText}>Cancel Transaction</Text>
+                </TouchableOpacity>
               </View>
             )}
             {currentStep === 4 && (
@@ -320,6 +357,12 @@ const UserMakeTransaction = ({ navigation, username }) => {
                     <Text style={styles.nextButtonText}>Next</Text>
                   </TouchableOpacity>
                 </View>
+                <TouchableOpacity
+                  style={[styles.cancelButton, { marginTop: 12 }]}
+                  onPress={handleCancel}
+                >
+                  <Text style={styles.cancelButtonText}>Cancel Transaction</Text>
+                </TouchableOpacity>
               </View>
             )}
             {currentStep === 5 && (
@@ -342,6 +385,12 @@ const UserMakeTransaction = ({ navigation, username }) => {
                     <Text style={styles.nextButtonText}>{submitting ? 'Processing...' : 'Confirm & Continue'}</Text>
                   </TouchableOpacity>
                 </View>
+                <TouchableOpacity
+                  style={[styles.cancelButton, { marginTop: 12 }]}
+                  onPress={handleCancel}
+                >
+                  <Text style={styles.cancelButtonText}>Cancel Transaction</Text>
+                </TouchableOpacity>
               </View>
             )}
             {currentStep === 6 && (
@@ -354,6 +403,12 @@ const UserMakeTransaction = ({ navigation, username }) => {
                   disabled={submitting}
                 >
                   <Text style={styles.nextButtonText}>Start Face Verification</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.cancelButton, { marginTop: 12 }]}
+                  onPress={handleCancel}
+                >
+                  <Text style={styles.cancelButtonText}>Cancel Transaction</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -380,6 +435,12 @@ const UserMakeTransaction = ({ navigation, username }) => {
                     <Text style={styles.nextButtonText}>{otpSubmitting ? 'Verifying...' : 'Verify & Complete'}</Text>
                   </TouchableOpacity>
                 </View>
+                <TouchableOpacity
+                  style={[styles.cancelButton, { marginTop: 12 }]}
+                  onPress={handleCancel}
+                >
+                  <Text style={styles.cancelButtonText}>Cancel Transaction</Text>
+                </TouchableOpacity>
               </View>
             )}
             {success && (
@@ -634,6 +695,20 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   convertButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+    letterSpacing: 1,
+  },
+  cancelButton: {
+    width: '100%',
+    backgroundColor: '#e53935',
+    borderRadius: 16,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  cancelButtonText: {
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,

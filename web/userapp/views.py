@@ -427,17 +427,17 @@ def verify_transaction(request):
     t_id = request.session.get('transaction_id')
 
     if not t_id:
+        if request.headers.get('accept') == 'application/json':
+            return JsonResponse({"success": False, "message": "No transaction found."})
         messages.error(request, "No transaction found.")
         return redirect('userapp:initiate_transaction')
 
     transaction = TransactionModel.objects.get(id=t_id)
-
-    success = False  # Flag to track transaction success
+    success = False
 
     if request.method == 'POST':
         entered_otp = int(request.POST['otp'])
         if entered_otp == transaction.otp:
-            print(f"{entered_otp} : {transaction.otp}")
             transaction.is_verified = True
             transaction.save()
 
@@ -447,12 +447,15 @@ def verify_transaction(request):
             receiver_account = AccountModel.objects.get(account_number=transaction.receiver_account_number)
             receiver_account.deposit(transaction.amount)
 
-            # messages.success(request, "Transaction successful!")
-            success = True  # Set flag to show modal popup
+            success = True
             del request.session['transaction_id']
 
-            # return redirect('userapp:userPage')
+            if request.headers.get('accept') == 'application/json':
+                return JsonResponse({"success": True, "message": "Transaction successful!"})
+            # else, fall through to render HTML
         else:
+            if request.headers.get('accept') == 'application/json':
+                return JsonResponse({"success": False, "message": "Invalid OTP. Please try again."})
             messages.error(request, "Invalid OTP. Please try again.")
             return redirect('userapp:initiate_transaction')
 
