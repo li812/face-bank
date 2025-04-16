@@ -24,8 +24,6 @@ import { API_URL } from '../config'
 
 const { width, height } = Dimensions.get('window')
 
-
-
 const genderOptions = [
   { key: 0, label: 'Male' },
   { key: 1, label: 'Female' },
@@ -79,9 +77,9 @@ const Register = ({ navigation }: any) => {
     player.play();
   });
 
-  // Enable camera when reaching step 2
+  // Enable camera when reaching step 3
   useEffect(() => {
-    if (currentStep === 2) {
+    if (currentStep === 3) {
       setIsCameraActive(true)
     } else {
       setIsCameraActive(false)
@@ -107,37 +105,45 @@ const Register = ({ navigation }: any) => {
 
   // Move to next step
   const goToNextStep = () => {
-    // Validate form data
-    for (const [key, value] of Object.entries(formData)) {
-      if (!value) {
-        setErrorMessage(`Please enter your ${key.replace('_', ' ')}`)
+    // Step 1: Personal details validation
+    if (currentStep === 1) {
+      const { username, first_name, last_name, gender, address, email, phone } = formData
+      if (!username || !first_name || !last_name || !gender || !address || !email || !phone) {
+        setErrorMessage('Please fill all personal details')
         setShowError(true)
         return
       }
+      if (!isValidEmail(email)) {
+        setErrorMessage('Please enter a valid email address')
+        setShowError(true)
+        return
+      }
+      if (!isValidPhone(phone)) {
+        setErrorMessage('Please enter a valid phone number')
+        setShowError(true)
+        return
+      }
+      setCurrentStep(2)
+      return
     }
-    
-    // Additional validations
-    if (!isValidEmail(formData.email)) {
-      setErrorMessage('Please enter a valid email address');
-      setShowError(true);
-      return;
+    // Step 2: Location details validation
+    if (currentStep === 2) {
+      const { city, state, country } = formData
+      if (!city || !state || !country) {
+        setErrorMessage('Please fill all location details')
+        setShowError(true)
+        return
+      }
+      setCurrentStep(3)
+      return
     }
-    
-    if (!isValidPhone(formData.phone)) {
-      setErrorMessage('Please enter a valid phone number');
-      setShowError(true);
-      return;
-    }
-    
-    // Move to camera step
-    setCurrentStep(2)
   }
-  
+
   // Go back to previous step
   const goToPreviousStep = () => {
-    setCurrentStep(1)
+    setCurrentStep(prev => Math.max(1, prev - 1))
   }
-  
+
   // Handle registration submission
   const handleRegister = async () => {
     if (!cameraRef.current) {
@@ -252,9 +258,9 @@ const Register = ({ navigation }: any) => {
               <View style={styles.overlay}>
                 <View style={styles.glass}>
                   <Text style={styles.heading}>Register</Text>
-                  <Text style={styles.stepIndicator}>Step {currentStep} of 2</Text>
+                  <Text style={styles.stepIndicator}>Step {currentStep} of 3</Text>
                   
-                  {/* Step 1: Registration Form */}
+                  {/* Step 1: Personal Details */}
                   {currentStep === 1 && (
                     <View style={styles.formContainer}>
                       <TextInput
@@ -331,6 +337,21 @@ const Register = ({ navigation }: any) => {
                         returnKeyType="next"
                       />
                       
+                      <TouchableOpacity
+                        style={styles.button}
+                        activeOpacity={0.7}
+                        onPress={goToNextStep}
+                      >
+                        <View style={[styles.buttonGradient, { backgroundColor: 'rgb(0, 171, 233)' }]}>
+                          <Text style={styles.buttonText}>Next</Text>
+                        </View>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                  
+                  {/* Step 2: Location Details */}
+                  {currentStep === 2 && (
+                    <View style={styles.formContainer}>
                       <TextInput
                         style={styles.input}
                         placeholder="City"
@@ -358,7 +379,6 @@ const Register = ({ navigation }: any) => {
                         returnKeyType="done"
                       />
                       
-                      {/* Next button */}
                       <TouchableOpacity
                         style={styles.button}
                         activeOpacity={0.7}
@@ -369,19 +389,18 @@ const Register = ({ navigation }: any) => {
                         </View>
                       </TouchableOpacity>
                       
-                      {/* Back button */}
                       <TouchableOpacity
                         style={styles.buttonOutline}
                         activeOpacity={0.7}
-                        onPress={() => navigation.goBack()}
+                        onPress={goToPreviousStep}
                       >
-                        <Text style={styles.buttonOutlineText}>Back to Home</Text>
+                        <Text style={styles.buttonOutlineText}>Back</Text>
                       </TouchableOpacity>
                     </View>
                   )}
                   
-                  {/* Step 2: Face Capture */}
-                  {currentStep === 2 && (
+                  {/* Step 3: Face Capture */}
+                  {currentStep === 3 && (
                     <View style={styles.formContainer}>
                       <Text style={styles.cameraInstructions}>
                         Please look directly at the camera and ensure your face is clearly visible
@@ -415,7 +434,7 @@ const Register = ({ navigation }: any) => {
                         onPress={goToPreviousStep}
                         disabled={loading}
                       >
-                        <Text style={styles.buttonOutlineText}>Back to Form</Text>
+                        <Text style={styles.buttonOutlineText}>Back to Location Details</Text>
                       </TouchableOpacity>
                     </View>
                   )}
