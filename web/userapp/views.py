@@ -374,6 +374,7 @@ def transaction_face_verification(request):
     return render(request, 'transaction_face_verification.html')
 
 
+@csrf_exempt
 def initiate_transaction(request):
     u_id = request.session.get('user_id')
     user_data = UserModel.objects.get(id=u_id)
