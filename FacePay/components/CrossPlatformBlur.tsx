@@ -9,6 +9,7 @@ interface CrossPlatformBlurProps {
   style?: any;
   children?: React.ReactNode;
   fallbackColor?: string;
+  disableAndroidFallback?: boolean; // New prop to disable Android fallback
 }
 
 const CrossPlatformBlur: React.FC<CrossPlatformBlurProps> = ({
@@ -16,7 +17,8 @@ const CrossPlatformBlur: React.FC<CrossPlatformBlurProps> = ({
   tint = 'default',
   style,
   children,
-  fallbackColor = 'rgba(255, 255, 255, 0.8)'
+  fallbackColor = 'rgba(255, 255, 255, 0.6)', // Reduce default opacity
+  disableAndroidFallback = false
 }) => {
   // For iOS, use native BlurView which works well
   if (IS_IOS) {
@@ -27,59 +29,19 @@ const CrossPlatformBlur: React.FC<CrossPlatformBlurProps> = ({
     );
   }
   
-  // For Android, we have two options:
-  // 1. Use experimental BlurView - may have performance issues
-  // 2. Use a semi-transparent background as fallback
-  
-  if (Platform.OS === 'android') {
-    // Option 1: Experimental blur for Android (may cause performance issues)
-    return (
-      <BlurView 
-        intensity={intensity} 
-        tint={tint}
-        experimentalBlurMethod="dimezisBlurView"
-        style={[styles.blurContainer, style]}
-      >
-        {children}
-      </BlurView>
-    );
-    
-    // Option 2: Fallback to semi-transparent view (better performance)
-    // Uncomment the following and comment out the above return statement if
-    // you prefer better performance over the blur effect
-    /*
-    return (
-      <View 
-        style={[
-          styles.blurContainer, 
-          { 
-            backgroundColor: tint === 'dark' 
-              ? 'rgba(0, 0, 0, 0.6)' 
-              : tint === 'light' 
-                ? fallbackColor 
-                : 'rgba(255, 255, 255, 0.6)' 
-          },
-          style
-        ]}
-      >
-        {children}
-      </View>
-    );
-    */
-  }
-  
-  // For Web or other platforms, use backdrop-filter if supported
+  // For Android, either use a more subtle background or disable fallback entirely
   return (
     <View 
       style={[
         styles.blurContainer, 
         { 
-          backdropFilter: `blur(${intensity / 4}px)`,
-          backgroundColor: tint === 'dark' 
-            ? 'rgba(0, 0, 0, 0.2)' 
-            : tint === 'light' 
-              ? 'rgba(255, 255, 255, 0.2)' 
-              : 'rgba(255, 255, 255, 0.1)'
+          // Only apply background if not disabled
+          backgroundColor: disableAndroidFallback ? 'transparent' : 
+            tint === 'dark' 
+              ? 'rgba(0, 0, 0, 0.4)' // Reduced opacity 
+              : tint === 'light' 
+                ? fallbackColor 
+                : 'rgba(255, 255, 255, 0.5)' // Reduced opacity
         },
         style
       ]}
@@ -92,7 +54,7 @@ const CrossPlatformBlur: React.FC<CrossPlatformBlurProps> = ({
 const styles = StyleSheet.create({
   blurContainer: {
     overflow: 'hidden', // Important for borderRadius to work with BlurView
-    flex: 1,
+    // Don't apply flex: 1 by default - let parent component control sizing
   },
 });
 

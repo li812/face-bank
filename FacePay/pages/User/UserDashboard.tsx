@@ -31,6 +31,22 @@ const UserDashboard = ({ username }) => {
   const [error, setError] = useState('')
   const [refreshing, setRefreshing] = useState(false)
   const [fullName, setFullName] = useState('')
+  const [, forceUpdate] = useState({})
+
+  // Add this effect to trigger re-render when component mounts
+  useEffect(() => {
+    // Force an immediate re-render
+    forceUpdate({})
+    
+    // Create a sequence of re-renders with increasing delays
+    const timers = [100, 300, 600].map((delay) => 
+      setTimeout(() => {
+        forceUpdate({});
+      }, delay)
+    );
+    
+    return () => timers.forEach(timer => clearTimeout(timer));
+  }, [])
 
   // Fetch user details for full name
   const fetchUserDetails = async () => {

@@ -13,7 +13,7 @@ from adminapp.views import send_email
 import json
 
 
-SIMILARITY_THRESHOLD = 0.1
+SIMILARITY_THRESHOLD = 0.00001
 
 
 def get_face_embedding(face_image):

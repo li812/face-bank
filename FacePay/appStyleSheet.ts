@@ -19,24 +19,25 @@ export const PLATFORM = {
 
 // Colors
 export const colors = {
-  primary: 'rgb(0, 195, 255)',
-  primaryDark: '#0091c7',
+  primary: 'rgba(0, 140, 255, 1)',
+  primaryDark: 'rgba(0, 145, 199, 1)',
   primaryLight: 'rgba(0, 171, 233, 0.08)',
-  secondary: '#e53935',
-  secondaryDark: '#c62828',
-  text: '#222',
-  textLight: '#666',
-  white: '#fff',
-  black: '#000',
-  error: 'red',
-  success: '#4CAF50',
-  transparent: 'transparent',
+  secondary: 'rgba(229, 57, 53, 1)',
+  secondaryDark: 'rgba(198, 40, 40, 1)',
+  text: 'rgba(34, 34, 34, 1)',
+  textLight: 'rgba(102, 102, 102, 1)',
+  white: 'rgba(255, 255, 255, 1)',
+  black: 'rgba(0, 0, 0, 1)',
+  error: 'rgba(255, 0, 0, 1)',
+  success: 'rgba(76, 175, 80, 1)',
+  transparent: 'rgba(0, 0, 0, 0)',
   card: 'rgba(255, 255, 255, 0.13)',
   cardHeader: 'rgba(255, 255, 255, 0.08)',
   buttonOutline: 'rgba(255, 255, 255, 0.08)',
   inputBg: 'rgba(255, 255, 255, 0.75)',
   inputBorder: 'rgba(0, 110, 157, 0.42)',
   modalOverlay: 'rgba(0, 0, 0, 0.5)',
+  
 };
 
 // Re-export the createShadow function from platformUtils

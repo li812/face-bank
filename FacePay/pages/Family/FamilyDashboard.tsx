@@ -27,10 +27,26 @@ import { IS_IOS, FONT_FAMILY } from '../../utils/platformUtils'
 const FamilyDashboard = ({ username }) => {
   const navigation = useNavigation()
   const [accounts, setAccounts] = useState([])
+  const [, forceUpdate] = useState({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [refreshing, setRefreshing] = useState(false)
   const [fullName, setFullName] = useState('')
+
+  // Add this effect for multiple re-renders
+  useEffect(() => {
+    // Force an immediate re-render
+    forceUpdate({})
+    
+    // Create a sequence of re-renders with increasing delays
+    const timers = [100, 300, 600].map((delay) => 
+      setTimeout(() => {
+        forceUpdate({})
+      }, delay)
+    )
+    
+    return () => timers.forEach(timer => clearTimeout(timer))
+  }, [])
 
   // Fetch user details for full name
   const fetchUserDetails = async () => {
