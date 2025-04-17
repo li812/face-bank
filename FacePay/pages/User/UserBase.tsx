@@ -39,8 +39,8 @@ const TabScreens = ({ username, first_name, last_name, navigation }) => (
         borderTopWidth: 0,
         elevation: 0,
         shadowOpacity: 0,
-        height: 60,
-        paddingBottom: 5,
+        height: 75,
+        paddingBottom: 1,
       },
       tabBarBackground: () => (
         <CrossPlatformBlur 
@@ -65,7 +65,8 @@ const TabScreens = ({ username, first_name, last_name, navigation }) => (
       },
       tabBarLabelStyle: {
         fontFamily: FONT_FAMILY.medium,
-        fontSize: 12,
+        fontSize: 15,
+        height: 35,
       },
       // Only allow tab buttons for the main tabs
       tabBarButton: (props) => {

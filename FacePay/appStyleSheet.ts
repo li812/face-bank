@@ -19,7 +19,7 @@ export const PLATFORM = {
 
 // Colors
 export const colors = {
-  primary: '#00abe9',
+  primary: 'rgb(0, 157, 255)',
   primaryDark: '#0091c7',
   primaryLight: 'rgba(0, 171, 233, 0.08)',
   secondary: '#e53935',
@@ -34,7 +34,7 @@ export const colors = {
   card: 'rgba(255, 255, 255, 0.13)',
   cardHeader: 'rgba(255, 255, 255, 0.08)',
   buttonOutline: 'rgba(255, 255, 255, 0.08)',
-  inputBg: 'rgba(255, 255, 255, 0.66)',
+  inputBg: 'rgba(255, 255, 255, 0.75)',
   inputBorder: 'rgba(0, 110, 157, 0.42)',
   modalOverlay: 'rgba(0, 0, 0, 0.5)',
 };
@@ -636,6 +636,221 @@ export const transactions = {
   },
 };
 
+// Loan-related styles
+export const loan = {
+  pickerWrapper: {
+    width: '100%',
+    marginBottom: 12,
+  },
+  pickerLabel: {
+    color: colors.primary,
+    fontWeight: 'bold',
+    marginBottom: 6,
+    fontSize: 15,
+    fontFamily: FONT_FAMILY.medium,
+  },
+  branchOption: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    backgroundColor: 'rgba(255, 255, 255, 0.46)',
+    marginRight: 8,
+  },
+  branchOptionSelected: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+};
+
+// Exchange Rate styles
+export const exchangeRate = {
+  pickerButton: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    marginVertical: 6,
+    alignItems: 'center',
+    width: '100%',
+  },
+  pickerButtonText: {
+    color: colors.primary,
+    fontWeight: 'bold',
+    fontSize: 16,
+    fontFamily: FONT_FAMILY.medium,
+  },
+  converterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    marginBottom: 8,
+    width: '100%',
+    justifyContent: 'center'
+  },
+  amountInput: {
+    width: 100,
+    backgroundColor: colors.inputBg,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.inputBorder,
+    color: colors.text,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 16,
+    marginRight: 8,
+    textAlign: 'center',
+    fontFamily: FONT_FAMILY.regular,
+  },
+  convertButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    marginLeft: 8,
+  },
+  convertButtonText: {
+    color: colors.white,
+    fontWeight: 'bold',
+    fontSize: 16,
+    letterSpacing: 1,
+    fontFamily: FONT_FAMILY.bold,
+  },
+  convertedText: {
+    marginTop: 10,
+    color: colors.primary,
+    fontWeight: 'bold',
+    fontSize: 18,
+    textAlign: 'center',
+    fontFamily: FONT_FAMILY.bold,
+  },
+  ratesList: {
+    width: '100%',
+    marginTop: 8,
+    maxHeight: 300,
+  },
+  rateRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+    paddingVertical: 2,
+    borderBottomWidth: 0.5,
+    borderBottomColor: 'rgba(0,171,233,0.13)',
+  },
+  currency: {
+    color: colors.text,
+    fontWeight: '600',
+    fontSize: 16,
+    fontFamily: FONT_FAMILY.medium,
+  },
+  rate: {
+    color: colors.primary,
+    fontWeight: 'bold',
+    fontSize: 16,
+    fontFamily: FONT_FAMILY.bold,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: colors.modalOverlay,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    backgroundColor: colors.white,
+    borderRadius: 16,
+    padding: 20,
+    alignItems: 'center',
+    width: '80%',
+    maxWidth: 400,
+    maxHeight: '80%',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: '#333',
+    fontFamily: FONT_FAMILY.bold,
+  },
+  modalItem: {
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    width: '100%',
+  },
+  modalItemText: {
+    fontSize: 16,
+    color: colors.text,
+    fontFamily: FONT_FAMILY.regular,
+  },
+  modalButton: {
+    backgroundColor: colors.primary,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginTop: 10,
+  },
+  modalButtonText: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: '600',
+    fontFamily: FONT_FAMILY.medium,
+  },
+};
+
+// Complaints-related styles
+export const complaints = {
+  input: {
+    width: '100%',
+    backgroundColor: 'rgba(255, 255, 255, 0.66)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 110, 157, 0.42)',
+    color: colors.text,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginBottom: 12,
+    fontSize: 16,
+    minHeight: 80,
+    textAlignVertical: 'top',
+    fontFamily: FONT_FAMILY.regular,
+  },
+  complaintCard: {
+    width: '100%',
+    maxWidth: 480,
+    marginBottom: 18,
+    padding: 20,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.13)',
+    overflow: 'hidden',
+    position: 'relative',
+    alignItems: 'flex-start',
+    ...createShadow(colors.primary, 0.1, 3, 12),
+  },
+  filterRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 10,
+    gap: 5,
+  },
+  filterButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    marginHorizontal: 1,
+  },
+  filterButtonActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+};
+
 // Touchable component helper - to create a platform-specific touchable style
 export const getTouchableComponent = () => {
   if (!IS_IOS) {
@@ -655,6 +870,9 @@ export default {
   filters,
   account,
   transactions,
+  loan,
+  exchangeRate,
+  complaints,      
   createShadow,
   PLATFORM,
   getTouchableComponent,

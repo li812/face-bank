@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, StyleSheet, ActivityIndicator, Platform, ScrollView, TouchableOpacity, TextInput, Dimensions, Image, Modal, FlatList } from 'react-native'
-import { BlurView } from 'expo-blur'
+import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TextInput, Dimensions, Image, Modal, FlatList } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { StatusBar } from 'expo-status-bar'
 import { MaterialIcons } from '@expo/vector-icons'
 
-const { width, height } = Dimensions.get('window')
+// Import unified styling
+import styleSheet, { colors, typography, layout, components, exchangeRate } from '../../appStyleSheet'
+import CrossPlatformBlur from '../../components/CrossPlatformBlur'
+import CrossPlatformTouchable from '../../components/CrossPlatformTouchable'
+import { IS_IOS, FONT_FAMILY } from '../../utils/platformUtils'
 
 interface CurrencyMap { [key: string]: string }
 interface RateMap { [key: string]: number }
@@ -98,108 +101,121 @@ const ExchangeRate = ({ navigation }) => {
   // Currency picker modal
   const renderCurrencyModal = (visible: boolean, onSelect: (v: string) => void, onClose: () => void, exclude?: string) => (
     <Modal visible={visible} transparent animationType="slide">
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContainer}>
-          <Text style={styles.modalTitle}>Select Currency</Text>
+      <View style={exchangeRate.modalOverlay}>
+        <View style={exchangeRate.modalContainer}>
+          <Text style={exchangeRate.modalTitle}>Select Currency</Text>
           <FlatList
             data={Object.keys(currencies).filter(cur => !exclude || cur !== exclude)}
             keyExtractor={item => item}
             renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.modalItem}
+              <CrossPlatformTouchable
+                style={exchangeRate.modalItem}
                 onPress={() => { onSelect(item); onClose(); }}
-                accessibilityLabel={`Select ${item}`}
               >
-                <Text style={styles.modalItemText}>{item} - {currencies[item]}</Text>
-              </TouchableOpacity>
+                <Text style={exchangeRate.modalItemText}>{item} - {currencies[item]}</Text>
+              </CrossPlatformTouchable>
             )}
           />
-          <TouchableOpacity style={styles.modalButton} onPress={onClose}>
-            <Text style={styles.modalButtonText}>Close</Text>
-          </TouchableOpacity>
+          <CrossPlatformTouchable style={exchangeRate.modalButton} onPress={onClose}>
+            <Text style={exchangeRate.modalButtonText}>Close</Text>
+          </CrossPlatformTouchable>
         </View>
       </View>
     </Modal>
   )
 
   return (
-    <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={layout.safeArea} edges={['top', 'left', 'right']}>
       <StatusBar style="light" backgroundColor="transparent" translucent />
       <Image
         source={require('../../assets/background/bg1.png')}
-        style={styles.backgroundImage}
+        style={components.backgroundImage}
         resizeMode="cover"
         pointerEvents="none"
       />
-      <View style={styles.gradient} pointerEvents="none" />
-      <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.headerContainer}>
-          <BlurView tint="light" intensity={100} style={StyleSheet.absoluteFill} />
-          <MaterialIcons name="currency-exchange" size={48} color="#00abe9" style={{ marginBottom: 8 }} />
-          <Text style={styles.heading}>Currency Exchange</Text>
-          <Text style={styles.subheading}>Get real-time rates and convert instantly</Text>
+      <View style={components.gradient} pointerEvents="none" />
+      <ScrollView contentContainerStyle={layout.container}>
+        <View style={components.headerContainer}>
+          <CrossPlatformBlur 
+            intensity={100}
+            tint="light"
+            style={StyleSheet.absoluteFill}
+            fallbackColor="rgba(255, 255, 255, 0.15)" 
+          />
+          <MaterialIcons name="currency-exchange" size={48} color={colors.primary} style={{ marginBottom: 8 }} />
+          <Text style={typography.heading}>Currency Exchange</Text>
+          <Text style={[typography.subHeading, { textAlign: 'center' }]}>Get real-time rates and convert instantly</Text>
         </View>
 
         {/* Conversion Tool */}
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Currency Converter</Text>
-          <Text style={styles.label}>From</Text>
-          <TouchableOpacity
-            style={styles.pickerButton}
+        <View style={components.formCard}>
+          <CrossPlatformBlur 
+            intensity={80}
+            tint="light"
+            style={StyleSheet.absoluteFill}
+            fallbackColor="rgba(255, 255, 255, 0.1)"
+          />
+          <Text style={typography.pickerLabel}>Currency Converter</Text>
+          <Text style={typography.label}>From</Text>
+          <CrossPlatformTouchable
+            style={exchangeRate.pickerButton}
             onPress={() => setShowBasePicker(true)}
             disabled={currLoading}
-            accessibilityLabel="Select base currency"
           >
-            <Text style={styles.pickerButtonText}>{base} - {currencies[base]}</Text>
-          </TouchableOpacity>
-          <Text style={styles.label}>To</Text>
-          <TouchableOpacity
-            style={styles.pickerButton}
+            <Text style={exchangeRate.pickerButtonText}>{base} - {currencies[base]}</Text>
+          </CrossPlatformTouchable>
+          <Text style={typography.label}>To</Text>
+          <CrossPlatformTouchable
+            style={exchangeRate.pickerButton}
             onPress={() => setShowTargetPicker(true)}
             disabled={currLoading}
-            accessibilityLabel="Select target currency"
           >
-            <Text style={styles.pickerButtonText}>{target} - {currencies[target]}</Text>
-          </TouchableOpacity>
-          <View style={styles.converterRow}>
+            <Text style={exchangeRate.pickerButtonText}>{target} - {currencies[target]}</Text>
+          </CrossPlatformTouchable>
+          <View style={exchangeRate.converterRow}>
             <TextInput
-              style={styles.amountInput}
+              style={exchangeRate.amountInput}
               value={amount}
               onChangeText={setAmount}
               keyboardType="decimal-pad"
               placeholder="Amount"
               placeholderTextColor="#888"
-              accessibilityLabel="Amount to convert"
             />
-            <TouchableOpacity style={styles.convertButton} onPress={handleConvert} accessibilityLabel="Convert currency">
-              <Text style={styles.convertButtonText}>Convert</Text>
-            </TouchableOpacity>
+            <CrossPlatformTouchable style={exchangeRate.convertButton} onPress={handleConvert}>
+              <Text style={exchangeRate.convertButtonText}>Convert</Text>
+            </CrossPlatformTouchable>
           </View>
           {converted !== '' && (
-            <Text style={styles.convertedText}>
+            <Text style={exchangeRate.convertedText}>
               {amount} {base} = {converted} {target}
             </Text>
           )}
         </View>
 
         {/* Latest Rates */}
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Latest {base} Rates</Text>
+        <View style={components.formCard}>
+          <CrossPlatformBlur 
+            intensity={80}
+            tint="light"
+            style={StyleSheet.absoluteFill}
+            fallbackColor="rgba(255, 255, 255, 0.1)"
+          />
+          <Text style={typography.pickerLabel}>Latest {base} Rates</Text>
           {loading || currLoading ? (
-            <ActivityIndicator color="#00abe9" style={{ marginTop: 16 }} />
+            <ActivityIndicator color={colors.primary} style={{ marginTop: 16 }} />
           ) : error ? (
             <View>
-              <Text style={styles.errorText}>{error}</Text>
-              <TouchableOpacity style={styles.convertButton} onPress={handleRetry}>
-                <Text style={styles.convertButtonText}>Retry</Text>
-              </TouchableOpacity>
+              <Text style={components.errorText}>{error}</Text>
+              <CrossPlatformTouchable style={exchangeRate.convertButton} onPress={handleRetry}>
+                <Text style={exchangeRate.convertButtonText}>Retry</Text>
+              </CrossPlatformTouchable>
             </View>
           ) : (
-            <ScrollView style={styles.ratesList}>
+            <ScrollView style={exchangeRate.ratesList}>
               {Object.entries(rates).map(([currency, rate]) => (
-                <View key={currency} style={styles.rateRow}>
-                  <Text style={styles.currency}>{currency} ({currencies[currency] || ''})</Text>
-                  <Text style={styles.rate}>{rate}</Text>
+                <View key={currency} style={exchangeRate.rateRow}>
+                  <Text style={exchangeRate.currency}>{currency} ({currencies[currency] || ''})</Text>
+                  <Text style={exchangeRate.rate}>{rate}</Text>
                 </View>
               ))}
             </ScrollView>
@@ -211,244 +227,5 @@ const ExchangeRate = ({ navigation }) => {
     </SafeAreaView>
   )
 }
-
-const styles = StyleSheet.create({
-  backgroundImage: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    width: undefined,
-    height: undefined,
-    zIndex: 0
-  },
-  gradient: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-    zIndex: 1
-  },
-  container: {
-    flexGrow: 1,
-    alignItems: 'center',
-    paddingVertical: 24,
-    paddingHorizontal: 10,
-    zIndex: 2,
-    minHeight: height,
-    paddingBottom: 90,
-  },
-  headerContainer: {
-    width: '100%',
-    maxWidth: 480,
-    alignItems: 'center',
-    marginTop: 24,
-    marginBottom: 24,
-    paddingTop: 24,
-    paddingBottom: 24,
-    paddingHorizontal: 12,
-    overflow: 'hidden',
-    position: 'relative',
-    borderRadius: 24,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-  },
-  backButton: {
-    position: 'absolute',
-    left: 16,
-    top: 16,
-    zIndex: 2,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 20,
-    padding: 4,
-  },
-  heading: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#00abe9',
-    letterSpacing: 1.2,
-    textAlign: 'center',
-    marginBottom: 0,
-    marginTop: 0,
-    textShadowColor: 'rgba(0,0,0,0.15)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 6,
-  },
-  subheading: {
-    color: '#555',
-    fontSize: 15,
-    marginTop: 6,
-    marginBottom: 0,
-    textAlign: 'center'
-  },
-  card: {
-    width: '100%',
-    maxWidth: 480,
-    marginBottom: 18,
-    padding: 20,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.13)',
-    overflow: 'hidden',
-    position: 'relative',
-    alignItems: 'center',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#00abe9',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.10,
-        shadowRadius: 12,
-      },
-      android: {
-        elevation: 3
-      }
-    })
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#00abe9',
-    marginBottom: 10,
-    textAlign: 'center'
-  },
-  label: {
-    color: '#00abe9',
-    fontWeight: 'bold',
-    marginTop: 8,
-    marginBottom: 2,
-    fontSize: 15,
-    alignSelf: 'flex-start'
-  },
-  pickerButton: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#00abe9',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    marginVertical: 6,
-    alignItems: 'center',
-    width: '100%',
-  },
-  pickerButtonText: {
-    color: '#00abe9',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  converterRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 8,
-    marginBottom: 8,
-    width: '100%',
-    justifyContent: 'center'
-  },
-  amountInput: {
-    width: 100,
-    backgroundColor: 'rgba(255,255,255,0.66)',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 110, 157, 0.42)',
-    color: '#222',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    fontSize: 16,
-    marginRight: 8,
-    textAlign: 'center'
-  },
-  convertButton: {
-    backgroundColor: '#00abe9',
-    borderRadius: 16,
-    paddingVertical: 10,
-    paddingHorizontal: 24,
-    alignItems: 'center',
-    marginLeft: 8,
-  },
-  convertButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-    letterSpacing: 1,
-  },
-  convertedText: {
-    marginTop: 10,
-    color: '#00abe9',
-    fontWeight: 'bold',
-    fontSize: 18,
-    textAlign: 'center'
-  },
-  ratesList: {
-    width: '100%',
-    marginTop: 8,
-    maxHeight: 300,
-  },
-  rateRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 6,
-    paddingVertical: 2,
-    borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(0,171,233,0.13)',
-  },
-  currency: {
-    color: '#222',
-    fontWeight: '600',
-    fontSize: 16,
-  },
-  rate: {
-    color: '#00abe9',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  errorText: {
-    color: 'red',
-    fontSize: 16,
-    marginTop: 10,
-    textAlign: 'center'
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContainer: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 20,
-    alignItems: 'center',
-    width: '80%',
-    maxWidth: 400,
-    maxHeight: '80%',
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#333',
-  },
-  modalItem: {
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    width: '100%',
-  },
-  modalItemText: {
-    fontSize: 16,
-    color: '#222',
-  },
-  modalButton: {
-    backgroundColor: '#00abe9',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    marginTop: 10,
-  },
-  modalButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-})
 
 export default ExchangeRate
