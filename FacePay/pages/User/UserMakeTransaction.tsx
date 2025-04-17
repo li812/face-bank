@@ -63,11 +63,32 @@ const UserMakeTransaction = ({ navigation, username }) => {
     const fetchData = async () => {
       setLoading(true)
       try {
-        const accRes = await axios.get(`${API_URL}/userAccount`, { headers: { Accept: 'application/json' } })
-        setAccounts(accRes.data.user_account || [])
-        const branchRes = await axios.get(`${API_URL}/branches`, { headers: { Accept: 'application/json' } })
-        setBranches(branchRes.data.branches || [])
+        // Step 1: Fetch user accounts
+        const accRes = await axios.get(`${API_URL}/userAccount`, { 
+          headers: { Accept: 'application/json' } 
+        })
+        const userAccounts = accRes.data.user_account || [];
+        setAccounts(userAccounts)
+        
+        // Step 2: Fetch all branches
+        const branchRes = await axios.get(`${API_URL}/branches`, { 
+          headers: { Accept: 'application/json' } 
+        })
+        const allBranches = branchRes.data.branches || [];
+        
+        // Step 3: Extract unique branch names from user accounts
+        const userBranchNames = new Set(userAccounts.map(acc => acc.branch_name));
+        
+        // Step 4: Filter branches to only include those whose names match
+        const userBranches = allBranches.filter(branch => 
+          userBranchNames.has(branch.branch_name)
+        );
+        
+        console.log(`Filtered to ${userBranches.length} branches out of ${allBranches.length} total branches`);
+        setBranches(userBranches)
+        setError('')
       } catch (err) {
+        console.error("Error fetching data:", err);
         setError('Failed to load accounts or branches')
       }
       setLoading(false)
