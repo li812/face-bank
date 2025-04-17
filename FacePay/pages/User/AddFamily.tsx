@@ -182,14 +182,43 @@ const AddFamily = ({ navigation, route }) => {
           console.error('Error response data:', JSON.stringify(error.response.data))
           console.error('Error response status:', error.response.status)
           console.error('Error response headers:', JSON.stringify(error.response.headers))
+          
+          // Extract the specific error message from the response if available
+          const errorMessage = error.response.data?.message || error.message
+          setError(errorMessage)
+          setShowError(true)
+          
+          // Clear form if this is a "family member limit" error
+          if (errorMessage.includes("You can only add one family member")) {
+            // Reset form data
+            setForm({
+              username: '',
+              name: '',
+              email: '',
+              phone: '',
+              relationship: ''
+            });
+            // Reset image
+            setImage(null);
+            // Return to step 1
+            setCurrentStep(1);
+          }
+          
+          return // Stop execution and don't rethrow
         } else if (error.request) {
           // The request was made but no response was received
           console.error('Error request:', error.request)
+          setError('Network error. Please check your connection.')
+          setShowError(true)
+          return // Stop execution and don't rethrow
         } else {
           // Something happened in setting up the request that triggered an Error
           console.error('Error config:', error.config)
+          setError('Request configuration error')
+          setShowError(true)
+          return // Stop execution and don't rethrow
         }
-        throw error; // rethrow for the outer catch
+        throw error; // Only rethrow if none of the above conditions are met
       }
     } catch (err) {
       console.error('Outer error:', err.message)
