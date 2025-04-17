@@ -519,6 +519,63 @@ export const filters = {
   },
 };
 
+// Account-related styles
+export const account = {
+  accountCard: {
+    width: '100%',
+    maxWidth: 480,
+    marginBottom: 18,
+    padding: 20,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.13)',
+    overflow: 'hidden',
+    position: 'relative',
+    alignItems: 'flex-start',
+    ...createShadow(colors.primary, 0.1, 3, 12),
+  },
+  accountNumber: {
+    color: colors.primary,
+    fontWeight: 'bold',
+    fontSize: 18,
+    marginBottom: 4,
+    fontFamily: FONT_FAMILY.bold,
+  },
+  accountType: {
+    color: colors.text,
+    fontSize: 16,
+    marginBottom: 2,
+    fontWeight: '600',
+    fontFamily: FONT_FAMILY.medium,
+  },
+  accountBranch: {
+    color: colors.text,
+    fontSize: 16,
+    marginBottom: 2,
+    fontWeight: '600',
+    fontFamily: FONT_FAMILY.medium,
+  },
+  accountIFSC: {
+    color: colors.textLight,
+    fontSize: 15,
+    marginBottom: 2,
+    fontFamily: FONT_FAMILY.regular,
+  },
+  accountBalance: {
+    color: colors.primary,
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginTop: 8,
+    marginBottom: 2,
+    fontFamily: FONT_FAMILY.bold,
+  },
+  accountDate: {
+    color: colors.textLight,
+    fontSize: 13,
+    marginTop: 2,
+    fontFamily: FONT_FAMILY.regular,
+  },
+};
+
 // Touchable component helper - to create a platform-specific touchable style
 export const getTouchableComponent = () => {
   if (!IS_IOS) {
@@ -536,6 +593,7 @@ export default {
   camera,
   dashboard,
   filters,
+  account,
   createShadow,
   PLATFORM,
   getTouchableComponent,

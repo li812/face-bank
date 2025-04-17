@@ -2,9 +2,9 @@ import React from 'react'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons'
-import { BlurView } from 'expo-blur'
-import { StyleSheet, TouchableOpacity } from 'react-native'
+import { StyleSheet } from 'react-native'
 
+// Import components from the app
 import UserDashboard from './UserDashboard'
 import UserMakeTransaction from './UserMakeTransaction'
 import UserProfile from './UserProfile'
@@ -17,6 +17,12 @@ import ManageComplaints from './ManageComplaints'
 import ExchangeRate from './ExchangeRate'
 import AddFamily from './AddFamily'
 
+// Import the unified stylesheet and components
+import styleSheet, { colors, typography, layout, components, PLATFORM } from '../../appStyleSheet'
+import CrossPlatformBlur from '../../components/CrossPlatformBlur'
+import CrossPlatformTouchable from '../../components/CrossPlatformTouchable'
+import { IS_IOS, FONT_FAMILY } from '../../utils/platformUtils'
+
 const Stack = createNativeStackNavigator()
 const Tab = createBottomTabNavigator()
 
@@ -25,14 +31,27 @@ const TabScreens = ({ username, first_name, last_name, navigation }) => (
     initialRouteName="Dashboard"
     screenOptions={({ route }) => ({
       headerShown: false,
-      tabBarActiveTintColor: '#00abe9',
+      tabBarActiveTintColor: colors.primary,
       tabBarInactiveTintColor: 'rgba(75, 75, 75, 0.57)',
-      tabBarStyle: { backgroundColor: 'transparent', position: 'absolute', borderTopWidth: 0 },
+      tabBarStyle: { 
+        backgroundColor: 'transparent', 
+        position: 'absolute', 
+        borderTopWidth: 0,
+        elevation: 0,
+        shadowOpacity: 0,
+        height: 60,
+        paddingBottom: 5,
+      },
       tabBarBackground: () => (
-        <BlurView tint="light" intensity={100} style={StyleSheet.absoluteFill} />
+        <CrossPlatformBlur 
+          tint="light" 
+          intensity={80} 
+          style={StyleSheet.absoluteFill}
+          fallbackColor="rgba(255, 255, 255, 0.8)" 
+        />
       ),
       tabBarIcon: ({ color, focused }) => {
-        const size = 38
+        const size = 32
         if (route.name === 'Dashboard') {
           return <MaterialIcons name="dashboard" size={size} color={color} />
         }
@@ -44,17 +63,28 @@ const TabScreens = ({ username, first_name, last_name, navigation }) => (
         }
         return null
       },
-      tabBarButton: (props) =>
-        route.name === 'ViewAccount' ||
-        route.name === 'AddAccount' ||
-        route.name === 'ViewTransactions' ||
-        route.name === 'ApplyLoan' ||
-        route.name === 'SendComplaints' ||
-        route.name === 'ManageComplaints' ||
-        route.name === 'ExchangeRate' ||
-        route.name === 'AddFamily'
-          ? null
-          : <TouchableOpacity {...props} />,
+      tabBarLabelStyle: {
+        fontFamily: FONT_FAMILY.medium,
+        fontSize: 12,
+      },
+      // Only allow tab buttons for the main tabs
+      tabBarButton: (props) => {
+        if (
+          route.name === 'ViewAccount' ||
+          route.name === 'AddAccount' ||
+          route.name === 'ViewTransactions' ||
+          route.name === 'ApplyLoan' ||
+          route.name === 'SendComplaints' ||
+          route.name === 'ManageComplaints' ||
+          route.name === 'ExchangeRate' ||
+          route.name === 'AddFamily'
+        ) {
+          return null;
+        }
+        
+        // Use CrossPlatformTouchable for consistent behavior
+        return <CrossPlatformTouchable {...props} activeOpacity={0.6} />;
+      },
     })}
   >
     <Tab.Screen name="Dashboard">
@@ -66,52 +96,30 @@ const TabScreens = ({ username, first_name, last_name, navigation }) => (
     <Tab.Screen name="Profile">
       {props => <UserProfile {...props} username={username} navigation={navigation} />}
     </Tab.Screen>
-    <Tab.Screen
-      name="ViewAccount"
-      options={{ tabBarButton: () => null }}
-    >
+    
+    {/* Hidden screens */}
+    <Tab.Screen name="ViewAccount" options={{ tabBarButton: () => null }}>
       {props => <ViewAccount {...props} username={username} />}
     </Tab.Screen>
-    <Tab.Screen
-      name="AddAccount"
-      options={{ tabBarButton: () => null }}
-    >
+    <Tab.Screen name="AddAccount" options={{ tabBarButton: () => null }}>
       {props => <AddAccount {...props} username={username} />}
     </Tab.Screen>
-    <Tab.Screen
-      name="ViewTransactions"
-      options={{ tabBarButton: () => null }}
-    >
+    <Tab.Screen name="ViewTransactions" options={{ tabBarButton: () => null }}>
       {props => <ViewTransactions {...props} username={username} />}
     </Tab.Screen>
-    <Tab.Screen
-      name="ApplyLoan"
-      options={{ tabBarButton: () => null }}
-    >
+    <Tab.Screen name="ApplyLoan" options={{ tabBarButton: () => null }}>
       {props => <ApplyLoan {...props} username={username} />}
     </Tab.Screen>
-    <Tab.Screen
-      name="SendComplaints"
-      options={{ tabBarButton: () => null }}
-    >
+    <Tab.Screen name="SendComplaints" options={{ tabBarButton: () => null }}>
       {props => <SendComplaints {...props} username={username} />}
     </Tab.Screen>
-    <Tab.Screen
-      name="ManageComplaints"
-      options={{ tabBarButton: () => null }}
-    >
+    <Tab.Screen name="ManageComplaints" options={{ tabBarButton: () => null }}>
       {props => <ManageComplaints {...props} username={username} />}
     </Tab.Screen>
-    <Tab.Screen
-      name="ExchangeRate"
-      options={{ tabBarButton: () => null }}
-    >
+    <Tab.Screen name="ExchangeRate" options={{ tabBarButton: () => null }}>
       {props => <ExchangeRate {...props} />}
     </Tab.Screen>
-    <Tab.Screen
-      name="AddFamily"
-      options={{ tabBarButton: () => null }}
-    >
+    <Tab.Screen name="AddFamily" options={{ tabBarButton: () => null }}>
       {props => <AddFamily {...props} username={username} />}
     </Tab.Screen>
   </Tab.Navigator>
@@ -121,11 +129,24 @@ const UserBase = ({ route, navigation }: any) => {
   const { username, first_name, last_name } = route.params || {}
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator 
+      screenOptions={{ 
+        headerShown: false,
+        contentStyle: { backgroundColor: IS_IOS ? 'transparent' : 'rgba(0,0,0,0.01)' },
+        animation: 'fade',
+        animationDuration: 200
+      }}
+    >
       <Stack.Screen name="Tabs">
         {props => <TabScreens {...props} username={username} first_name={first_name} last_name={last_name} navigation={navigation} />}
       </Stack.Screen>
-      <Stack.Screen name="AddFamily" component={AddFamily} />
+      
+      {/* Additional screens that need to be outside the tab navigator */}
+      <Stack.Screen 
+        name="AddFamily" 
+        component={AddFamily}
+        initialParams={{ username }}
+      />
     </Stack.Navigator>
   )
 }
