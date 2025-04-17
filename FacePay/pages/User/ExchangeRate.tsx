@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TextInput, Dimensions, Image, Modal, FlatList } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { StatusBar } from 'expo-status-bar'
 import { MaterialIcons } from '@expo/vector-icons'
+import { useFocusEffect } from '@react-navigation/native'
 
 // Import unified styling
 import styleSheet, { colors, typography, layout, components, exchangeRate } from '../../appStyleSheet'
@@ -26,24 +27,42 @@ const ExchangeRate = ({ navigation }) => {
   const [showBasePicker, setShowBasePicker] = useState(false)
   const [showTargetPicker, setShowTargetPicker] = useState(false)
 
-  // Fetch available currencies
-  useEffect(() => {
-    const fetchCurrencies = async () => {
-      setCurrLoading(true)
-      try {
-        const res = await fetch('https://api.frankfurter.app/currencies')
-        const data = await res.json()
-        setCurrencies(data)
-        setError('')
-      } catch {
-        setError('Failed to load currencies')
-      }
-      setCurrLoading(false)
-    }
-    fetchCurrencies()
-  }, [])
+  // Create a function to fetch all required data
+  const fetchAllData = useCallback(() => {
+    console.log("Refreshing exchange rate data");
+    fetchCurrencies();
+    // Rates will be fetched automatically via the useEffect that depends on base
+  }, []);
 
-  // Fetch rates for base currency
+  // Fetch available currencies
+  const fetchCurrencies = async () => {
+    setCurrLoading(true)
+    try {
+      const res = await fetch('https://api.frankfurter.app/currencies')
+      const data = await res.json()
+      setCurrencies(data)
+      setError('')
+    } catch {
+      setError('Failed to load currencies')
+    }
+    setCurrLoading(false)
+  }
+
+  // Use useFocusEffect to refresh data when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      fetchAllData();
+      // Reset conversion result
+      setConverted('');
+      
+      // Optional: Return a cleanup function if needed
+      return () => {
+        // Any cleanup code if necessary
+      };
+    }, [fetchAllData]) // Include fetchAllData in dependency array
+  );
+
+  // Fetch rates for base currency - keep this separate as it depends on base
   useEffect(() => {
     const fetchRates = async () => {
       setLoading(true)
@@ -80,22 +99,13 @@ const ExchangeRate = ({ navigation }) => {
     }
   }
 
-  // Clear conversion result on change
-  useEffect(() => {
-    setConverted('')
-  }, [base, target, amount])
-
   // Retry handler
   const handleRetry = () => {
-    setError('')
-    setCurrLoading(true)
-    setLoading(true)
-    setCurrencies({})
-    setRates({})
-    setBase('USD')
-    setTarget('INR')
-    setAmount('1')
-    setConverted('')
+    fetchAllData();
+    setBase('USD');
+    setTarget('INR');
+    setAmount('1');
+    setConverted('');
   }
 
   // Currency picker modal

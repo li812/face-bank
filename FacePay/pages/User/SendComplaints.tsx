@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useCallback } from 'react'
 import { 
   View, 
   Text, 
@@ -14,6 +14,7 @@ import { API_URL } from '../../config'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { StatusBar } from 'expo-status-bar'
 import { MaterialIcons } from '@expo/vector-icons'
+import { useFocusEffect } from '@react-navigation/native'
 
 // Import unified styling
 import styleSheet, { colors, typography, layout, components, complaints } from '../../appStyleSheet'
@@ -26,24 +27,66 @@ const SendComplaints = ({ navigation, username }) => {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
+  // Use useFocusEffect to reset form when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      console.log("SendComplaints screen in focus - resetting form");
+      setComplaint('');
+      setError('');
+      
+      return () => {
+        // Any cleanup code if necessary
+      };
+    }, [])
+  );
+
   const handleSubmit = async () => {
-    if (!complaint) {
+    if (!complaint || complaint.trim() === '') {
       Alert.alert('Error', 'Please enter your complaint')
       return
     }
+    
     setSubmitting(true)
+    setError('')
+    
     try {
+      // Create form data with proper string values for Android compatibility
       const data = new FormData()
-      data.append('username', username)
-      data.append('complaint', complaint)
-      await axios.post(`${API_URL}/user_complaint`, data)
+      data.append('username', String(username))
+      data.append('complaint', String(complaint))
+      
+      // Log the request for debugging
+      console.log('Sending complaint data:', {
+        username: username,
+        complaint: complaint
+      });
+      
+      const res = await axios.post(`${API_URL}/user_complaint`, data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Accept': 'application/json'
+        }
+      })
+      
+      // Log the response for debugging
+      console.log('Complaint submission response:', res.data);
+      
       setSubmitting(false)
       setComplaint('') // Clear the input after success
-      Alert.alert('Success', 'Complaint submitted successfully!')
-      navigation.navigate('Dashboard')
+      
+      Alert.alert('Success', 'Complaint submitted successfully!', [
+        { text: 'OK', onPress: () => navigation.navigate('Dashboard') }
+      ])
     } catch (err) {
+      console.error('Complaint submission error:', err.message);
+      if (err.response) {
+        console.error('Error response:', err.response.data);
+        setError(`Failed to submit complaint: ${err.response.data?.message || err.message}`);
+      } else {
+        setError('Failed to submit complaint. Please check your connection.');
+      }
+      
       setSubmitting(false)
-      setError('Failed to submit complaint')
     }
   }
 
