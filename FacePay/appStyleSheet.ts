@@ -1,0 +1,565 @@
+import { StyleSheet, Dimensions, Platform, StatusBar } from 'react-native';
+
+const { width, height } = Dimensions.get('window');
+
+// Platform-specific values
+const PLATFORM = {
+  IS_IOS: Platform.OS === 'ios',
+  STATUS_BAR_HEIGHT: StatusBar.currentHeight || 0, // For Android
+  FONT_FAMILY: {
+    regular: Platform.OS === 'ios' ? 'System' : 'Roboto',
+    medium: Platform.OS === 'ios' ? 'System' : 'Roboto-Medium',
+    bold: Platform.OS === 'ios' ? 'System' : 'Roboto-Bold',
+  }
+};
+
+// Colors
+export const colors = {
+  primary: '#00abe9',
+  primaryDark: '#0091c7',
+  primaryLight: 'rgba(0, 171, 233, 0.08)',
+  secondary: '#e53935',
+  secondaryDark: '#c62828',
+  text: '#222',
+  textLight: '#666',
+  white: '#fff',
+  black: '#000',
+  error: 'red',
+  success: '#4CAF50',
+  transparent: 'transparent',
+  card: 'rgba(255, 255, 255, 0.13)',
+  cardHeader: 'rgba(255, 255, 255, 0.08)',
+  buttonOutline: 'rgba(255, 255, 255, 0.08)',
+  inputBg: 'rgba(255, 255, 255, 0.66)',
+  inputBorder: 'rgba(0, 110, 157, 0.42)',
+  modalOverlay: 'rgba(0, 0, 0, 0.5)',
+};
+
+// Create a shadow function to handle cross-platform shadows consistently
+export const createShadow = (
+  color = '#000',
+  opacity = 0.2,
+  elevation = 5,
+  radius = 3.5,
+  offsetX = 0,
+  offsetY = 3
+) => {
+  return Platform.select({
+    ios: {
+      shadowColor: color,
+      shadowOffset: { width: offsetX, height: offsetY },
+      shadowOpacity: opacity,
+      shadowRadius: radius,
+    },
+    android: {
+      elevation: elevation,
+      // Optional: simulate iOS shadows on Android
+      // These only work if the view has a background color
+      shadowColor: color,
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0,
+      shadowRadius: 0,
+    },
+    default: {
+      // For web or other platforms
+      boxShadow: `${offsetX}px ${offsetY}px ${radius}px rgba(0, 0, 0, ${opacity})`,
+    }
+  });
+};
+
+// Typography
+export const typography = {
+  heading: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: colors.primary,
+    letterSpacing: 1.2,
+    textShadowColor: 'rgba(0, 0, 0, 0.15)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
+    fontFamily: PLATFORM.FONT_FAMILY.bold,
+  },
+  mainHeading: {
+    fontSize: 36,
+    fontWeight: 'bold',
+    letterSpacing: 2,
+    color: colors.white,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
+    fontFamily: PLATFORM.FONT_FAMILY.bold,
+  },
+  subHeading: {
+    fontSize: 15,
+    marginTop: 6,
+    color: '#555',
+    fontFamily: PLATFORM.FONT_FAMILY.medium,
+  },
+  label: {
+    color: colors.text,
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 2,
+    marginTop: 4,
+    fontFamily: PLATFORM.FONT_FAMILY.medium,
+  },
+  value: {
+    color: colors.primary,
+    fontWeight: 'bold',
+    fontSize: 16,
+    marginBottom: 2,
+    fontFamily: PLATFORM.FONT_FAMILY.bold,
+  },
+  pickerLabel: {
+    color: colors.primary,
+    fontWeight: 'bold',
+    marginBottom: 6,
+    fontSize: 15,
+    fontFamily: PLATFORM.FONT_FAMILY.medium,
+  },
+};
+
+// Layout
+export const layout = {
+  container: {
+    flexGrow: 1,
+    alignItems: 'center',
+    paddingVertical: 24,
+    paddingHorizontal: 10,
+    zIndex: 2,
+    minHeight: height,
+    paddingBottom: 90, // for tab bar
+    // Add padding for Android status bar if not using SafeAreaView
+    ...(!PLATFORM.IS_IOS && { paddingTop: PLATFORM.STATUS_BAR_HEIGHT }),
+  },
+  safeArea: {
+    flex: 1,
+    zIndex: 2,
+  },
+  fullScreen: {
+    flex: 1,
+    position: 'relative',
+    backgroundColor: colors.black,
+  },
+  overlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 2,
+    paddingVertical: 20,
+  },
+  centeredRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  spaceBetweenRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    gap: 8,
+  },
+};
+
+// Components
+export const components = {
+  backgroundImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: undefined,
+    height: undefined,
+    zIndex: 0,
+  },
+  gradient: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    zIndex: 1,
+  },
+  glass: {
+    width: '88%',
+    paddingVertical: 30,
+    paddingHorizontal: 24,
+    backgroundColor: 'rgba(30, 30, 40, 0.25)',
+    borderRadius: 24,
+    alignItems: 'center',
+    ...createShadow(colors.black, 0.2, 8, 16),
+    ...(PLATFORM.IS_IOS && { backdropFilter: 'blur(16px)' }),
+  },
+  headerContainer: {
+    width: '100%',
+    maxWidth: 480,
+    alignItems: 'center',
+    marginTop: 24,
+    marginBottom: 24,
+    paddingTop: 24,
+    paddingBottom: 24,
+    paddingHorizontal: 12,
+    overflow: 'hidden',
+    position: 'relative',
+    borderRadius: 24,
+    backgroundColor: colors.cardHeader,
+  },
+  formCard: {
+    width: '100%',
+    maxWidth: 480,
+    marginBottom: 18,
+    padding: 20,
+    borderRadius: 20,
+    backgroundColor: colors.card,
+    overflow: 'hidden',
+    position: 'relative',
+    alignItems: 'center',
+    ...createShadow(colors.primary, 0.1, 3, 12),
+  },
+  input: {
+    width: '100%',
+    backgroundColor: colors.inputBg,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.inputBorder,
+    color: colors.text,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginBottom: 12,
+    fontSize: 16,
+    // Remove default underline on Android
+    ...(!PLATFORM.IS_IOS && { 
+      underlineColorAndroid: 'transparent',
+      padding: 10,  // Android needs more padding
+    }),
+    // Match text layout across platforms
+    fontFamily: PLATFORM.FONT_FAMILY.regular,
+    textAlignVertical: 'center',
+  },
+  // Unified touchable styles
+  touchable: {
+    width: '100%',
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginTop: 8,
+    // Use different effects for different platforms
+    ...(PLATFORM.IS_IOS ? {
+      // iOS will use opacity effect by default
+    } : {
+      // Android can use ripple effect via TouchableNativeFeedback
+      // We don't apply it here since it's applied via the component itself
+    }),
+  },
+  buttonGradient: {
+    minHeight: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    backgroundColor: colors.primary,
+  },
+  buttonText: {
+    color: colors.white,
+    fontSize: 18,
+    fontWeight: '600',
+    letterSpacing: 1,
+    fontFamily: PLATFORM.FONT_FAMILY.medium,
+  },
+  buttonOutline: {
+    width: '100%',
+    minHeight: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 16,
+    backgroundColor: colors.buttonOutline,
+    borderColor: 'rgba(255, 255, 255, 0.5)',
+    borderWidth: 1,
+    borderRadius: 16,
+  },
+  buttonOutlineText: {
+    color: colors.white,
+    fontSize: 18,
+    fontWeight: '600',
+    letterSpacing: 1,
+    fontFamily: PLATFORM.FONT_FAMILY.medium,
+  },
+  errorText: {
+    color: colors.error,
+    fontSize: 16,
+    marginTop: 10,
+    textAlign: 'center',
+    fontFamily: PLATFORM.FONT_FAMILY.medium,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: colors.modalOverlay,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    backgroundColor: colors.white,
+    borderRadius: 16,
+    padding: 20,
+    alignItems: 'center',
+    width: '80%',
+    maxWidth: 400,
+    ...createShadow('#000', 0.2, 8, 16),
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: '#333',
+    fontFamily: PLATFORM.FONT_FAMILY.bold,
+  },
+  modalMessage: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+    color: '#555',
+    fontFamily: PLATFORM.FONT_FAMILY.regular,
+  },
+  modalButton: {
+    backgroundColor: colors.primary,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  modalButtonText: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: '600',
+    fontFamily: PLATFORM.FONT_FAMILY.medium,
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 40,
+    left: 0,
+    right: 0,
+    textAlign: 'center',
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: 14,
+    letterSpacing: 1,
+    zIndex: 3,
+    fontFamily: PLATFORM.FONT_FAMILY.regular,
+  },
+  branchOption: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    backgroundColor: 'rgba(255, 255, 255, 0.46)',
+    marginRight: 8,
+  },
+  branchOptionSelected: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  submitButton: {
+    width: '100%',
+    backgroundColor: colors.primary,
+    borderRadius: 16,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: 10,
+    ...createShadow(colors.primary, 0.2, 4, 8),
+  },
+  submitButtonText: {
+    color: colors.white,
+    fontWeight: 'bold',
+    fontSize: 18,
+    letterSpacing: 1,
+    fontFamily: PLATFORM.FONT_FAMILY.bold,
+  },
+};
+
+// Camera-related styles
+export const camera = {
+  cameraContainer: {
+    flex: 1,
+    backgroundColor: colors.black,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cameraPreviewContainer: {
+    width: '90%',
+    maxWidth: 480,
+    height: 300,
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 16,
+    position: 'relative',
+    backgroundColor: colors.black,
+  },
+  cameraPreview: {
+    flex: 1,
+  },
+  cameraInstructions: {
+    color: colors.text,
+    fontSize: 16,
+    marginBottom: 16,
+    textAlign: 'center',
+    fontFamily: PLATFORM.FONT_FAMILY.regular,
+  },
+  captureButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 16,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginBottom: 10,
+    width: '100%',
+    ...createShadow(colors.primary, 0.3, 5, 10),
+  },
+  captureButtonText: {
+    color: colors.white,
+    fontWeight: 'bold',
+    fontSize: 18,
+    fontFamily: PLATFORM.FONT_FAMILY.bold,
+  },
+  closeCameraButton: {
+    backgroundColor: colors.secondary,
+    borderRadius: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    marginTop: 10,
+    ...createShadow(colors.secondary, 0.3, 4, 8),
+  },
+  closeCameraText: {
+    color: colors.white,
+    fontWeight: 'bold',
+    fontSize: 16,
+    fontFamily: PLATFORM.FONT_FAMILY.bold,
+  },
+  imagePreviewContainer: {
+    width: '100%',
+    alignItems: 'center',
+  },
+  imagePreview: {
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    marginBottom: 10,
+    borderWidth: 2,
+    borderColor: colors.white,
+  },
+  retakeButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  retakeButtonText: {
+    color: colors.white,
+    fontFamily: PLATFORM.FONT_FAMILY.medium,
+  },
+};
+
+// Additional domain-specific styles
+export const dashboard = {
+  cardsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    maxWidth: 480,
+    marginBottom: 10,
+    gap: 8,
+  },
+  card: {
+    flex: 1,
+    minWidth: 0,
+    alignItems: 'center',
+    borderRadius: 20,
+    paddingVertical: 15,
+    marginHorizontal: 2,
+    marginBottom: 2,
+    overflow: 'hidden',
+    position: 'relative',
+    backgroundColor: colors.card,
+    ...createShadow(colors.primary, 0.1, 3, 12),
+  },
+  cardIcon: {
+    marginBottom: 8,
+    opacity: 0.7,
+  },
+  cardText: {
+    color: colors.black,
+    fontSize: 15,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    textAlign: 'center',
+    fontFamily: PLATFORM.FONT_FAMILY.medium,
+  },
+  avatar: {
+    marginBottom: 8,
+    opacity: 0.9,
+  },
+  balance: {
+    color: colors.primary,
+    fontSize: 26,
+    fontWeight: 'bold',
+    letterSpacing: 1.5,
+    marginBottom: 8,
+    textShadowColor: 'rgba(0, 171, 233, 0.25)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
+    textAlign: 'center',
+    fontFamily: PLATFORM.FONT_FAMILY.bold,
+  },
+  balanceLabel: {
+    color: 'rgba(25, 25, 25, 0.7)',
+    fontSize: 14,
+    marginTop: 8,
+    marginBottom: 2,
+    letterSpacing: 1,
+    textAlign: 'center',
+    fontFamily: PLATFORM.FONT_FAMILY.regular,
+  },
+};
+
+// Filter controls
+export const filters = {
+  filterRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 10,
+    gap: 5,
+  },
+  filterButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    marginHorizontal: 1,
+  },
+  filterButtonActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+};
+
+// Touchable component helper - to create a platform-specific touchable style
+export const getTouchableComponent = () => {
+  if (Platform.OS === 'android') {
+    return require('react-native').TouchableNativeFeedback;
+  } else {
+    return require('react-native').TouchableOpacity;
+  }
+};
+
+export default {
+  colors,
+  typography,
+  layout,
+  components,
+  camera,
+  dashboard,
+  filters,
+  createShadow,
+  PLATFORM,
+  getTouchableComponent,
+};
