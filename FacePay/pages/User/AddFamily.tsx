@@ -90,23 +90,29 @@ const AddFamily = ({ navigation, route }) => {
     }
     setSubmitting(true)
     setError('')
-    console.log('Submitting family member for account_username:', primaryUsername)
     try {
       const data = new FormData()
       data.append('username', form.username)
-      data.append('account_username', primaryUsername)
+      data.append('account_username', primaryUsername) // <-- main user's username
       data.append('name', form.name)
       data.append('email', form.email)
       data.append('phone', form.phone)
       data.append('relationship', form.relationship)
       data.append('image', {
         uri: image.uri,
-        type: 'image/jpeg',
-        name: 'family_photo.jpg'
+        type: image.uri.endsWith('.png') ? 'image/png' : 'image/jpeg',
+        name: 'family_photo' + (image.uri.endsWith('.png') ? '.png' : '.jpg')
       })
-      const res = await axios.post(`${API_URL}/register_family/`, data, {
-        headers: { 'Content-Type': 'multipart/form-data', Accept: 'application/json' }
+
+      console.log('POSTing to:', `${API_URL}/api/mobile_register_family/`)
+
+      const res = await axios.post(`${API_URL}/api/mobile_register_family/`, data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Accept: 'application/json'
+        }
       })
+
       if (res.data && res.data.message?.toLowerCase().includes('success')) {
         Alert.alert('Success', 'Family member registered successfully!', [
           { text: 'OK', onPress: () => navigation.navigate('Dashboard', { username: primaryUsername }) }
@@ -558,3 +564,4 @@ const styles = StyleSheet.create({
 })
 
 export default AddFamily
+

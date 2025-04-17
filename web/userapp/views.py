@@ -238,66 +238,138 @@ def apply_loan(request):
     return render(request, 'apply_loan.html', {"user_account": user_account, 'user_data': user_data})
 
 
+import pickle
+from PIL import Image
+from django.shortcuts import render, redirect
+from django.http import JsonResponse, HttpResponse
+from django.views.decorators.csrf import csrf_exempt
+from .models import UserModel, FamilyModel
+
 @csrf_exempt
 def register_family_member(request):
-    c_id = request.session.get('user_id')
-    user_data = UserModel.objects.get(id=c_id)
-    family_members_data = FamilyModel.objects.all().filter(account_username=user_data)
+    # --- API/Mobile GET: Return JSON if Accept header is application/json ---
+    if request.method == 'GET' and request.headers.get('accept') == 'application/json':
+        account_username_ = request.GET.get('account_username')
+        if not account_username_:
+            return JsonResponse({"message": "Missing account_username."}, status=400)
+        try:
+            account_user = UserModel.objects.get(username=account_username_)
+        except UserModel.DoesNotExist:
+            return JsonResponse({"message": "Account owner not found."}, status=404)
+        family_member = FamilyModel.objects.filter(account_username=account_user).first()
+        if family_member:
+            return JsonResponse({
+                "exists": True,
+                "family_member": {
+                    "username": family_member.username,
+                    "name": family_member.name,
+                    "email": family_member.email,
+                    "phone": family_member.phone,
+                    "relationship": family_member.relationship,
+                    "date": str(family_member.date)
+                }
+            })
+        else:
+            return JsonResponse({"exists": False})
 
-    # Always return JSON for mobile app
-    if family_members_data:
-        print("pass")
+    # --- API/Mobile POST: Accept JSON or multipart POST, do NOT use session ---
+    if request.method == 'POST' and request.headers.get('accept') == 'application/json':
+        username = request.POST.get('username')
+        account_username_ = request.POST.get('account_username')
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        phone = request.POST.get('phone')
+        relationship = request.POST.get('relationship')
+        image_file = request.FILES.get('image')
+
+        if not (username and account_username_ and name and email and phone and relationship and image_file):
+            return JsonResponse({"message": "All fields are required."}, status=400)
+
+        # Check if account_username exists
+        try:
+            account_user = UserModel.objects.get(username=account_username_)
+        except UserModel.DoesNotExist:
+            return JsonResponse({"message": "Account owner not found."}, status=404)
+
+        # Only one family member allowed per account_username
+        if FamilyModel.objects.filter(account_username=account_user).exists():
+            return JsonResponse({"message": "You can only add one family member. You have already added one."}, status=400)
+
+        # Check if family username is unique
+        if FamilyModel.objects.filter(username=username).exists():
+            return JsonResponse({"message": "Family username already exists."}, status=400)
+
+        # Process image and embedding
+        try:
+            image = Image.open(image_file).convert("RGB")
+            face_embedding = get_face_embedding(image)
+            if face_embedding is None:
+                return JsonResponse({"message": "Failed to extract face features."}, status=400)
+            embedding_binary = pickle.dumps(face_embedding)
+        except Exception as e:
+            return JsonResponse({"message": f"Image processing error: {e}"}, status=400)
+
+        # Save family member
+        FamilyModel.objects.create(
+            username=username,
+            account_username=account_user,
+            name=name,
+            email=email,
+            phone=phone,
+            relationship=relationship,
+            embedding=embedding_binary
+        )
+        return JsonResponse({"message": "Family member registered successfully!"})
+
+    # --- Web (session-based) flow ---
+    c_id = request.session.get('user_id')
+    if not c_id:
+        return redirect('userapp:login')
+    user_data = UserModel.objects.get(id=c_id)
+    family_members_data = FamilyModel.objects.filter(account_username=user_data)
+
+    if family_members_data.exists():
         if request.headers.get('accept') == 'application/json':
             return JsonResponse({"message": "You can only add one family member. You have already added one."})
         else:
             return HttpResponse('<h3>You Can Only Add One Family member. You have already add one family member</h3>')
-    else:
-        print("creating")
-        if request.method == 'POST':
-            username = request.POST.get('username')
-            account_username_ = request.POST.get('account_username')
-            if not account_username_:
-                return JsonResponse({"message": "Missing account_username."}, status=400)
-            try:
-                account_username = UserModel.objects.get(username=account_username_)
-            except UserModel.DoesNotExist:
-                return JsonResponse({"message": "Account owner not found."}, status=404)
-            print('Received account_username:', account_username_)
-            name = request.POST.get('name')
-            email = request.POST.get('email')
-            phone = request.POST.get('phone')
-            relationship = request.POST.get('relationship')
-            image_file = request.FILES.get('image')
 
-            if not account_username or not image_file:
-                return JsonResponse({"message": "Invalid data. Provide username and image."})
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        phone = request.POST.get('phone')
+        relationship = request.POST.get('relationship')
+        image_file = request.FILES.get('image')
 
-            # Process image
+        if not (username and name and email and phone and relationship and image_file):
+            return render(request, 'family_register.html', {'user_data': user_data, 'error': 'All fields are required.'})
+
+        # Check if family username is unique
+        if FamilyModel.objects.filter(username=username).exists():
+            return render(request, 'family_register.html', {'user_data': user_data, 'error': 'Family username already exists.'})
+
+        # Process image and embedding
+        try:
             image = Image.open(image_file).convert("RGB")
             face_embedding = get_face_embedding(image)
             if face_embedding is None:
-                return JsonResponse({"message": "Failed to extract face features."})
-
-            # Store face embedding
+                return render(request, 'family_register.html', {'user_data': user_data, 'error': 'Failed to extract face features.'})
             embedding_binary = pickle.dumps(face_embedding)
+        except Exception as e:
+            return render(request, 'family_register.html', {'user_data': user_data, 'error': f'Image processing error: {e}'})
 
-            try:
-                user = UserModel.objects.get(username=account_username)
-            except UserModel.DoesNotExist:
-                return JsonResponse({"message": "Account owner not found."})
-
-            # Save family member to database
-            family_member = FamilyModel.objects.create(
-                username=username,
-                account_username=account_username,
-                name=name,
-                email=email,
-                phone=phone,
-                relationship=relationship,
-                embedding=embedding_binary
-            )
-
-            return JsonResponse({"message": "Family member registered successfully!", "redirect": "/userPage"})
+        # Save family member
+        FamilyModel.objects.create(
+            username=username,
+            account_username=user_data,
+            name=name,
+            email=email,
+            phone=phone,
+            relationship=relationship,
+            embedding=embedding_binary
+        )
+        return redirect('userapp:userPage')
 
     return render(request, 'family_register.html', {'user_data': user_data})
 
@@ -574,3 +646,59 @@ def get_branches(request):
     return JsonResponse({'error': 'Invalid request method'}, status=405)
 
 
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from PIL import Image
+import pickle
+
+@csrf_exempt
+def mobile_register_family_member(request):
+    if request.method != 'POST':
+        return JsonResponse({"message": "Only POST allowed."}, status=405)
+
+    username = request.POST.get('username')
+    account_username_ = request.POST.get('account_username')
+    name = request.POST.get('name')
+    email = request.POST.get('email')
+    phone = request.POST.get('phone')
+    relationship = request.POST.get('relationship')
+    image_file = request.FILES.get('image')
+
+    if not (username and account_username_ and name and email and phone and relationship and image_file):
+        return JsonResponse({"message": "All fields are required."}, status=400)
+
+    # Check if account_username exists
+    try:
+        account_user = UserModel.objects.get(username=account_username_)
+    except UserModel.DoesNotExist:
+        return JsonResponse({"message": "Account owner not found."}, status=404)
+
+    # Only one family member allowed per account_username
+    if FamilyModel.objects.filter(account_username=account_user).exists():
+        return JsonResponse({"message": "You can only add one family member. You have already added one."}, status=400)
+
+    # Check if family username is unique
+    if FamilyModel.objects.filter(username=username).exists():
+        return JsonResponse({"message": "Family username already exists."}, status=400)
+
+    # Process image and embedding
+    try:
+        image = Image.open(image_file).convert("RGB")
+        face_embedding = get_face_embedding(image)
+        if face_embedding is None:
+            return JsonResponse({"message": "Failed to extract face features."}, status=400)
+        embedding_binary = pickle.dumps(face_embedding)
+    except Exception as e:
+        return JsonResponse({"message": f"Image processing error: {e}"}, status=400)
+
+    # Save family member
+    FamilyModel.objects.create(
+        username=username,
+        account_username=account_user,
+        name=name,
+        email=email,
+        phone=phone,
+        relationship=relationship,
+        embedding=embedding_binary
+    )
+    return JsonResponse({"message": "Family member registered successfully!"})

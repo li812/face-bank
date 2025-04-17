@@ -22,4 +22,5 @@ urlpatterns = [
     path('view_user_complaint_replay', views.view_user_complaint_replay, name='view_user_complaint_replay'),
     path('check_username/', views.check_username, name='check_username'),
     path('branches', views.get_branches, name='branches'),
+    path('api/mobile_register_family/', views.mobile_register_family_member, name='mobile_register_family'),
 ]
