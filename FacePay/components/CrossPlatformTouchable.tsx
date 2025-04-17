@@ -1,10 +1,6 @@
 import React from 'react';
-import { 
-  TouchableOpacity, 
-  TouchableNativeFeedback, 
-  Platform, 
-  View 
-} from 'react-native';
+import { TouchableOpacity, TouchableNativeFeedback, View } from 'react-native';
+import { IS_IOS } from '../utils/platformUtils';
 
 interface TouchableProps {
   onPress?: () => void;
@@ -26,8 +22,8 @@ const CrossPlatformTouchable = ({
   useForeground = true,
   ...props
 }: TouchableProps) => {
-  // On Android, use TouchableNativeFeedback for the ripple effect
-  if (Platform.OS === 'android' && Platform.Version >= 21) {
+  // Use our reliable platform detection
+  if (!IS_IOS) {
     return (
       <TouchableNativeFeedback
         onPress={onPress}
@@ -41,7 +37,7 @@ const CrossPlatformTouchable = ({
     );
   }
 
-  // On iOS and older Android versions, use TouchableOpacity
+  // For iOS
   return (
     <TouchableOpacity
       onPress={onPress}

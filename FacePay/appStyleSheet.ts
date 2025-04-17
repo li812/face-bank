@@ -1,16 +1,20 @@
-import { StyleSheet, Dimensions, Platform, StatusBar } from 'react-native';
+import { StyleSheet } from 'react-native';
+import platformUtils, {
+  IS_IOS,
+  FONT_FAMILY,
+  STATUS_BAR_HEIGHT,
+  createShadow,
+  SCREEN
+} from './utils/platformUtils';
 
-const { width, height } = Dimensions.get('window');
+const { width, height } = SCREEN;
 
-// Platform-specific values
-const PLATFORM = {
-  IS_IOS: Platform.OS === 'ios',
-  STATUS_BAR_HEIGHT: StatusBar.currentHeight || 0, // For Android
-  FONT_FAMILY: {
-    regular: Platform.OS === 'ios' ? 'System' : 'Roboto',
-    medium: Platform.OS === 'ios' ? 'System' : 'Roboto-Medium',
-    bold: Platform.OS === 'ios' ? 'System' : 'Roboto-Bold',
-  }
+// Export platform-specific values for direct use in components
+export const PLATFORM = {
+  IS_IOS,
+  IS_ANDROID: !IS_IOS,
+  STATUS_BAR_HEIGHT,
+  FONT_FAMILY
 };
 
 // Colors
@@ -35,39 +39,10 @@ export const colors = {
   modalOverlay: 'rgba(0, 0, 0, 0.5)',
 };
 
-// Create a shadow function to handle cross-platform shadows consistently
-export const createShadow = (
-  color = '#000',
-  opacity = 0.2,
-  elevation = 5,
-  radius = 3.5,
-  offsetX = 0,
-  offsetY = 3
-) => {
-  return Platform.select({
-    ios: {
-      shadowColor: color,
-      shadowOffset: { width: offsetX, height: offsetY },
-      shadowOpacity: opacity,
-      shadowRadius: radius,
-    },
-    android: {
-      elevation: elevation,
-      // Optional: simulate iOS shadows on Android
-      // These only work if the view has a background color
-      shadowColor: color,
-      shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 0,
-      shadowRadius: 0,
-    },
-    default: {
-      // For web or other platforms
-      boxShadow: `${offsetX}px ${offsetY}px ${radius}px rgba(0, 0, 0, ${opacity})`,
-    }
-  });
-};
+// Re-export the createShadow function from platformUtils
+export { createShadow };
 
-// Typography
+// Typography styles remain the same, just use FONT_FAMILY from platformUtils
 export const typography = {
   heading: {
     fontSize: 28,
@@ -77,7 +52,7 @@ export const typography = {
     textShadowColor: 'rgba(0, 0, 0, 0.15)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 6,
-    fontFamily: PLATFORM.FONT_FAMILY.bold,
+    fontFamily: FONT_FAMILY.bold,
   },
   mainHeading: {
     fontSize: 36,
@@ -87,13 +62,13 @@ export const typography = {
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 8,
-    fontFamily: PLATFORM.FONT_FAMILY.bold,
+    fontFamily: FONT_FAMILY.bold,
   },
   subHeading: {
     fontSize: 15,
     marginTop: 6,
     color: '#555',
-    fontFamily: PLATFORM.FONT_FAMILY.medium,
+    fontFamily: FONT_FAMILY.medium,
   },
   label: {
     color: colors.text,
@@ -101,21 +76,21 @@ export const typography = {
     fontWeight: '600',
     marginBottom: 2,
     marginTop: 4,
-    fontFamily: PLATFORM.FONT_FAMILY.medium,
+    fontFamily: FONT_FAMILY.medium,
   },
   value: {
     color: colors.primary,
     fontWeight: 'bold',
     fontSize: 16,
     marginBottom: 2,
-    fontFamily: PLATFORM.FONT_FAMILY.bold,
+    fontFamily: FONT_FAMILY.bold,
   },
   pickerLabel: {
     color: colors.primary,
     fontWeight: 'bold',
     marginBottom: 6,
     fontSize: 15,
-    fontFamily: PLATFORM.FONT_FAMILY.medium,
+    fontFamily: FONT_FAMILY.medium,
   },
 };
 
@@ -130,7 +105,7 @@ export const layout = {
     minHeight: height,
     paddingBottom: 90, // for tab bar
     // Add padding for Android status bar if not using SafeAreaView
-    ...(!PLATFORM.IS_IOS && { paddingTop: PLATFORM.STATUS_BAR_HEIGHT }),
+    ...(!IS_IOS && { paddingTop: STATUS_BAR_HEIGHT }),
   },
   safeArea: {
     flex: 1,
@@ -187,9 +162,10 @@ export const components = {
     paddingHorizontal: 24,
     backgroundColor: 'rgba(30, 30, 40, 0.25)',
     borderRadius: 24,
+    overflow: 'hidden', // Critical for BlurView to respect borderRadius
     alignItems: 'center',
     ...createShadow(colors.black, 0.2, 8, 16),
-    ...(PLATFORM.IS_IOS && { backdropFilter: 'blur(16px)' }),
+    ...(IS_IOS && { backdropFilter: 'blur(16px)' }),
   },
   headerContainer: {
     width: '100%',
@@ -200,9 +176,9 @@ export const components = {
     paddingTop: 24,
     paddingBottom: 24,
     paddingHorizontal: 12,
-    overflow: 'hidden',
+    overflow: 'hidden', // Critical for BlurView to respect borderRadius
     position: 'relative',
-    borderRadius: 24,
+    borderRadius: 24, // Your desired border radius
     backgroundColor: colors.cardHeader,
   },
   formCard: {
@@ -210,7 +186,8 @@ export const components = {
     maxWidth: 480,
     marginBottom: 18,
     padding: 20,
-    borderRadius: 20,
+    borderRadius: 24, // Your desired border radius
+    overflow: 'hidden', // Critical for BlurView to respect borderRadius
     backgroundColor: colors.card,
     overflow: 'hidden',
     position: 'relative',
@@ -229,12 +206,12 @@ export const components = {
     marginBottom: 12,
     fontSize: 16,
     // Remove default underline on Android
-    ...(!PLATFORM.IS_IOS && { 
+    ...(!IS_IOS && { 
       underlineColorAndroid: 'transparent',
       padding: 10,  // Android needs more padding
     }),
     // Match text layout across platforms
-    fontFamily: PLATFORM.FONT_FAMILY.regular,
+    fontFamily: FONT_FAMILY.regular,
     textAlignVertical: 'center',
   },
   // Unified touchable styles
@@ -244,7 +221,7 @@ export const components = {
     overflow: 'hidden',
     marginTop: 8,
     // Use different effects for different platforms
-    ...(PLATFORM.IS_IOS ? {
+    ...(IS_IOS ? {
       // iOS will use opacity effect by default
     } : {
       // Android can use ripple effect via TouchableNativeFeedback
@@ -264,7 +241,7 @@ export const components = {
     fontSize: 18,
     fontWeight: '600',
     letterSpacing: 1,
-    fontFamily: PLATFORM.FONT_FAMILY.medium,
+    fontFamily: FONT_FAMILY.medium,
   },
   buttonOutline: {
     width: '100%',
@@ -282,14 +259,14 @@ export const components = {
     fontSize: 18,
     fontWeight: '600',
     letterSpacing: 1,
-    fontFamily: PLATFORM.FONT_FAMILY.medium,
+    fontFamily: FONT_FAMILY.medium,
   },
   errorText: {
     color: colors.error,
     fontSize: 16,
     marginTop: 10,
     textAlign: 'center',
-    fontFamily: PLATFORM.FONT_FAMILY.medium,
+    fontFamily: FONT_FAMILY.medium,
   },
   modalOverlay: {
     flex: 1,
@@ -311,14 +288,14 @@ export const components = {
     fontWeight: 'bold',
     marginBottom: 10,
     color: '#333',
-    fontFamily: PLATFORM.FONT_FAMILY.bold,
+    fontFamily: FONT_FAMILY.bold,
   },
   modalMessage: {
     fontSize: 16,
     textAlign: 'center',
     marginBottom: 20,
     color: '#555',
-    fontFamily: PLATFORM.FONT_FAMILY.regular,
+    fontFamily: FONT_FAMILY.regular,
   },
   modalButton: {
     backgroundColor: colors.primary,
@@ -330,7 +307,7 @@ export const components = {
     color: colors.white,
     fontSize: 16,
     fontWeight: '600',
-    fontFamily: PLATFORM.FONT_FAMILY.medium,
+    fontFamily: FONT_FAMILY.medium,
   },
   footer: {
     position: 'absolute',
@@ -342,7 +319,7 @@ export const components = {
     fontSize: 14,
     letterSpacing: 1,
     zIndex: 3,
-    fontFamily: PLATFORM.FONT_FAMILY.regular,
+    fontFamily: FONT_FAMILY.regular,
   },
   branchOption: {
     paddingVertical: 8,
@@ -371,7 +348,7 @@ export const components = {
     fontWeight: 'bold',
     fontSize: 18,
     letterSpacing: 1,
-    fontFamily: PLATFORM.FONT_FAMILY.bold,
+    fontFamily: FONT_FAMILY.bold,
   },
 };
 
@@ -401,7 +378,7 @@ export const camera = {
     fontSize: 16,
     marginBottom: 16,
     textAlign: 'center',
-    fontFamily: PLATFORM.FONT_FAMILY.regular,
+    fontFamily: FONT_FAMILY.regular,
   },
   captureButton: {
     backgroundColor: colors.primary,
@@ -416,7 +393,7 @@ export const camera = {
     color: colors.white,
     fontWeight: 'bold',
     fontSize: 18,
-    fontFamily: PLATFORM.FONT_FAMILY.bold,
+    fontFamily: FONT_FAMILY.bold,
   },
   closeCameraButton: {
     backgroundColor: colors.secondary,
@@ -431,7 +408,7 @@ export const camera = {
     color: colors.white,
     fontWeight: 'bold',
     fontSize: 16,
-    fontFamily: PLATFORM.FONT_FAMILY.bold,
+    fontFamily: FONT_FAMILY.bold,
   },
   imagePreviewContainer: {
     width: '100%',
@@ -453,7 +430,7 @@ export const camera = {
   },
   retakeButtonText: {
     color: colors.white,
-    fontFamily: PLATFORM.FONT_FAMILY.medium,
+    fontFamily: FONT_FAMILY.medium,
   },
 };
 
@@ -490,7 +467,7 @@ export const dashboard = {
     fontWeight: '600',
     letterSpacing: 0.5,
     textAlign: 'center',
-    fontFamily: PLATFORM.FONT_FAMILY.medium,
+    fontFamily: FONT_FAMILY.medium,
   },
   avatar: {
     marginBottom: 8,
@@ -506,7 +483,7 @@ export const dashboard = {
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 8,
     textAlign: 'center',
-    fontFamily: PLATFORM.FONT_FAMILY.bold,
+    fontFamily: FONT_FAMILY.bold,
   },
   balanceLabel: {
     color: 'rgba(25, 25, 25, 0.7)',
@@ -515,7 +492,7 @@ export const dashboard = {
     marginBottom: 2,
     letterSpacing: 1,
     textAlign: 'center',
-    fontFamily: PLATFORM.FONT_FAMILY.regular,
+    fontFamily: FONT_FAMILY.regular,
   },
 };
 
@@ -544,7 +521,7 @@ export const filters = {
 
 // Touchable component helper - to create a platform-specific touchable style
 export const getTouchableComponent = () => {
-  if (Platform.OS === 'android') {
+  if (!IS_IOS) {
     return require('react-native').TouchableNativeFeedback;
   } else {
     return require('react-native').TouchableOpacity;

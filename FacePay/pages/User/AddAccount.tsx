@@ -5,29 +5,22 @@ import {
   ScrollView, 
   ActivityIndicator, 
   Dimensions, 
-  Platform, 
   Image, 
   TextInput, 
   Alert, 
   StyleSheet,
   TouchableNativeFeedback
 } from 'react-native'
-import { BlurView } from 'expo-blur'
+import CrossPlatformBlur from '../../components/CrossPlatformBlur'
 import axios from 'axios'
 import { API_URL } from '../../config'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { StatusBar } from 'expo-status-bar'
-import styleSheet, { colors, typography, layout, components, PLATFORM } from '../../appStyleSheet'
+import styleSheet, { colors, typography, layout, components } from '../../appStyleSheet'
 import CrossPlatformTouchable from '../../components/CrossPlatformTouchable'
+import { IS_IOS, FONT_FAMILY } from '../../utils/platformUtils'
 
 const { width, height } = Dimensions.get('window')
-
-const IS_IOS = Platform.OS === 'ios';
-const FONT_FAMILY = {
-  regular: Platform.OS === 'ios' ? 'System' : 'Roboto',
-  medium: Platform.OS === 'ios' ? 'System' : 'Roboto-Medium',
-  bold: Platform.OS === 'ios' ? 'System' : 'Roboto-Bold',
-};
 
 const AddAccount = ({ navigation, username }) => {
   const [branches, setBranches] = useState([])
@@ -106,14 +99,24 @@ const AddAccount = ({ navigation, username }) => {
       <View style={components.gradient} pointerEvents="none" />
       <ScrollView contentContainerStyle={layout.container}>
         <View style={components.headerContainer}>
-          <BlurView tint="light" intensity={100} style={StyleSheet.absoluteFill} />
+          <CrossPlatformBlur 
+            intensity={100} 
+            tint="light" 
+            style={StyleSheet.absoluteFill}
+            fallbackColor="rgba(255, 255, 255, 0.15)"
+          />
           <Text style={typography.heading}>Add Account</Text>
         </View>
         {loading ? (
           <ActivityIndicator color={colors.primary} size="large" style={{ marginTop: 32 }} />
         ) : (
           <View style={components.formCard}>
-            <BlurView tint="light" intensity={80} style={StyleSheet.absoluteFill} />
+            <CrossPlatformBlur 
+              intensity={80} 
+              tint="light" 
+              style={StyleSheet.absoluteFill}
+              fallbackColor="rgba(255, 255, 255, 0.1)"
+            />
             <TextInput
               style={components.input}
               placeholder="Account Number"

@@ -1,8 +1,19 @@
 import React, { useRef, useState, useEffect } from 'react'
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Dimensions, Platform, Image, Alert, Modal, KeyboardAvoidingView
+  View, 
+  Text, 
+  ScrollView, 
+  TouchableOpacity, 
+  TextInput, 
+  Dimensions, 
+  Platform, 
+  Image, 
+  Alert, 
+  Modal, 
+  KeyboardAvoidingView,
+  StyleSheet,
+  TouchableNativeFeedback
 } from 'react-native'
-import { BlurView } from 'expo-blur'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { StatusBar } from 'expo-status-bar'
 import { MaterialIcons } from '@expo/vector-icons'
@@ -10,7 +21,11 @@ import { CameraView, useCameraPermissions, CameraType } from 'expo-camera'
 import axios from 'axios'
 import { API_URL } from '../../config'
 
-const { width, height } = Dimensions.get('window')
+// Import the unified stylesheet
+import styleSheet, { colors, typography, layout, components, camera, PLATFORM } from '../../appStyleSheet'
+import CrossPlatformBlur from '../../components/CrossPlatformBlur'
+import CrossPlatformTouchable from '../../components/CrossPlatformTouchable'
+import { IS_IOS, FONT_FAMILY } from '../../utils/platformUtils'
 
 const AddFamily = ({ navigation, route }) => {
   // 1. Add debugging to see what's being passed
@@ -189,66 +204,66 @@ const AddFamily = ({ navigation, route }) => {
     if (!permission) return <View />
     if (!permission.granted) {
       return (
-        <View style={styles.cameraContainer}>
-          <Text style={styles.errorText}>Camera permission is required</Text>
-          <TouchableOpacity style={styles.captureButton} onPress={requestPermission}>
-            <Text style={styles.captureButtonText}>Grant Permission</Text>
+        <View style={camera.cameraContainer}>
+          <Text style={components.errorText}>Camera permission is required</Text>
+          <TouchableOpacity style={camera.captureButton} onPress={requestPermission}>
+            <Text style={camera.captureButtonText}>Grant Permission</Text>
           </TouchableOpacity>
         </View>
       )
     }
     return (
-      <View style={styles.cameraContainer}>
-        <View style={styles.cameraPreviewContainer}>
+      <View style={camera.cameraContainer}>
+        <View style={camera.cameraPreviewContainer}>
           <CameraView
             ref={cameraRef}
-            style={styles.cameraPreview}
+            style={camera.cameraPreview}
             facing={facing}
           />
         </View>
         <TouchableOpacity
-          style={styles.captureButton}
+          style={camera.captureButton}
           onPress={handleCaptureFace}
           disabled={submitting}
         >
-          <Text style={styles.captureButtonText}>{submitting ? 'Capturing...' : 'Capture & Use Photo'}</Text>
+          <Text style={camera.captureButtonText}>{submitting ? 'Capturing...' : 'Capture & Use Photo'}</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={styles.closeCameraButton}
+          style={camera.closeCameraButton}
           onPress={() => setIsCameraActive(false)}
         >
-          <Text style={styles.closeCameraText}>Cancel</Text>
+          <Text style={camera.closeCameraText}>Cancel</Text>
         </TouchableOpacity>
       </View>
     )
   }
 
   return (
-    <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={layout.safeArea} edges={['top', 'left', 'right']}>
       <StatusBar style="light" backgroundColor="transparent" translucent />
       <Image
         source={require('../../assets/background/bg1.png')}
-        style={styles.backgroundImage}
+        style={components.backgroundImage}
         resizeMode="cover"
         pointerEvents="none"
       />
-      <View style={styles.gradient} pointerEvents="none" />
+      <View style={components.gradient} pointerEvents="none" />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
       >
-        <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-          <View style={styles.headerContainer}>
-            <BlurView tint="light" intensity={100} style={StyleSheet.absoluteFill} />
-            <MaterialIcons name="group-add" size={48} color="#00abe9" style={{ marginBottom: 8 }} />
-            <Text style={styles.heading}>Add Family Member</Text>
+        <ScrollView contentContainerStyle={layout.container} keyboardShouldPersistTaps="handled">
+          <View style={components.headerContainer}>
+            <CrossPlatformBlur intensity={100} tint="light" style={StyleSheet.absoluteFill} fallbackColor="rgba(255, 255, 255, 0.15)" />
+            <MaterialIcons name="group-add" size={48} color={colors.primary} style={{ marginBottom: 8 }} />
+            <Text style={typography.heading}>Add Family Member</Text>
             <Text style={styles.stepIndicator}>Step {currentStep} of 2</Text>
           </View>
           {currentStep === 1 && (
-            <View style={styles.formCard}>
-              <BlurView tint="light" intensity={80} style={StyleSheet.absoluteFill} />
+            <View style={components.formCard}>
+              <CrossPlatformBlur intensity={80} tint="light" style={StyleSheet.absoluteFill} fallbackColor="rgba(255, 255, 255, 0.1)" />
               <TextInput
-                style={styles.input}
+                style={components.input}
                 placeholder="Family Username"
                 placeholderTextColor="#888"
                 value={form.username}
@@ -257,7 +272,7 @@ const AddFamily = ({ navigation, route }) => {
                 returnKeyType="next"
               />
               <TextInput
-                style={styles.input}
+                style={components.input}
                 placeholder="Full Name"
                 placeholderTextColor="#888"
                 value={form.name}
@@ -265,7 +280,7 @@ const AddFamily = ({ navigation, route }) => {
                 returnKeyType="next"
               />
               <TextInput
-                style={styles.input}
+                style={components.input}
                 placeholder="Email"
                 placeholderTextColor="#888"
                 value={form.email}
@@ -274,7 +289,7 @@ const AddFamily = ({ navigation, route }) => {
                 returnKeyType="next"
               />
               <TextInput
-                style={styles.input}
+                style={components.input}
                 placeholder="Phone"
                 placeholderTextColor="#888"
                 value={form.phone}
@@ -283,77 +298,82 @@ const AddFamily = ({ navigation, route }) => {
                 returnKeyType="next"
               />
               <TextInput
-                style={styles.input}
+                style={components.input}
                 placeholder="Relationship"
                 placeholderTextColor="#888"
                 value={form.relationship}
                 onChangeText={v => handleChange('relationship', v)}
                 returnKeyType="done"
               />
-              <TouchableOpacity
-                style={styles.nextButton}
+              <CrossPlatformTouchable
+                style={components.submitButton}
                 onPress={handleNext}
+                background={!IS_IOS ? TouchableNativeFeedback.Ripple('#fff', false) : undefined}
               >
-                <Text style={styles.nextButtonText}>Next: Face Capture</Text>
-              </TouchableOpacity>
+                <Text style={components.submitButtonText}>Next: Face Capture</Text>
+              </CrossPlatformTouchable>
             </View>
           )}
           {currentStep === 2 && (
-            <View style={styles.formCard}>
-              <BlurView tint="light" intensity={80} style={StyleSheet.absoluteFill} />
-              <Text style={styles.cameraInstructions}>
+            <View style={components.formCard}>
+              <CrossPlatformBlur intensity={80} tint="light" style={StyleSheet.absoluteFill} fallbackColor="rgba(255, 255, 255, 0.1)" />
+              <Text style={camera.cameraInstructions}>
                 Please look directly at the camera and ensure your face is clearly visible.
               </Text>
               {image ? (
-                <View style={styles.imagePreviewContainer}>
-                  <Image source={{ uri: image.uri }} style={styles.imagePreview} />
-                  <TouchableOpacity
-                    style={styles.retakeButton}
+                <View style={camera.imagePreviewContainer}>
+                  <Image source={{ uri: image.uri }} style={camera.imagePreview} />
+                  <CrossPlatformTouchable
+                    style={camera.retakeButton}
                     onPress={() => {
                       setImage(null)
                       handleStartCamera()
                     }}
                   >
-                    <Text style={styles.retakeButtonText}>Retake Photo</Text>
-                  </TouchableOpacity>
+                    <Text style={camera.retakeButtonText}>Retake Photo</Text>
+                  </CrossPlatformTouchable>
                 </View>
               ) : (
-                <TouchableOpacity
-                  style={styles.captureButton}
+                <CrossPlatformTouchable
+                  style={camera.captureButton}
                   onPress={handleStartCamera}
+                  background={!IS_IOS ? TouchableNativeFeedback.Ripple('#fff', false) : undefined}
                 >
-                  <Text style={styles.captureButtonText}>Capture Face Photo</Text>
-                </TouchableOpacity>
+                  <Text style={camera.captureButtonText}>Capture Face Photo</Text>
+                </CrossPlatformTouchable>
               )}
-              <TouchableOpacity
-                style={[styles.submitButton, { opacity: submitting ? 0.6 : 1 }]}
+              <CrossPlatformTouchable
+                style={[components.submitButton, { opacity: submitting ? 0.6 : 1 }]}
                 onPress={handleSubmit}
                 disabled={submitting}
+                background={!IS_IOS ? TouchableNativeFeedback.Ripple('#fff', false) : undefined}
               >
-                <Text style={styles.submitButtonText}>{submitting ? 'Submitting...' : 'Add Family Member'}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.buttonOutline}
+                <Text style={components.submitButtonText}>{submitting ? 'Submitting...' : 'Add Family Member'}</Text>
+              </CrossPlatformTouchable>
+              <CrossPlatformTouchable
+                style={components.buttonOutline}
                 onPress={prevStep}
                 disabled={submitting}
+                background={!IS_IOS ? TouchableNativeFeedback.Ripple('rgba(0, 0, 0, 0.1)', true) : undefined}
               >
-                <Text style={styles.buttonOutlineText}>Back to Details</Text>
-              </TouchableOpacity>
+                <Text style={components.buttonOutlineText}>Back to Details</Text>
+              </CrossPlatformTouchable>
             </View>
           )}
         </ScrollView>
         {/* Error Modal */}
         <Modal visible={showError} transparent={true} animationType="fade">
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContainer}>
-              <Text style={styles.modalTitle}>Error</Text>
-              <Text style={styles.modalMessage}>{error}</Text>
-              <TouchableOpacity
-                style={styles.modalButton}
+          <View style={components.modalOverlay}>
+            <View style={components.modalContainer}>
+              <Text style={components.modalTitle}>Error</Text>
+              <Text style={components.modalMessage}>{error}</Text>
+              <CrossPlatformTouchable
+                style={components.modalButton}
                 onPress={() => setShowError(false)}
+                background={!IS_IOS ? TouchableNativeFeedback.Ripple('#fff', false) : undefined}
               >
-                <Text style={styles.modalButtonText}>OK</Text>
-              </TouchableOpacity>
+                <Text style={components.modalButtonText}>OK</Text>
+              </CrossPlatformTouchable>
             </View>
           </View>
         </Modal>
@@ -362,262 +382,17 @@ const AddFamily = ({ navigation, route }) => {
   )
 }
 
+// Only define styles that aren't in the global style sheet
 const styles = StyleSheet.create({
-  backgroundImage: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    width: undefined,
-    height: undefined,
-    zIndex: 0
-  },
-  gradient: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-    zIndex: 1
-  },
-  container: {
-    flexGrow: 1,
-    alignItems: 'center',
-    paddingVertical: 24,
-    paddingHorizontal: 10,
-    zIndex: 2,
-    minHeight: height,
-    paddingBottom: 90,
-  },
-  headerContainer: {
-    width: '100%',
-    maxWidth: 480,
-    alignItems: 'center',
-    marginTop: 24,
-    marginBottom: 24,
-    paddingTop: 24,
-    paddingBottom: 24,
-    paddingHorizontal: 12,
-    overflow: 'hidden',
-    position: 'relative',
-    borderRadius: 24,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-  },
-  heading: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#00abe9',
-    letterSpacing: 1.2,
-    textAlign: 'center',
-    marginBottom: 0,
-    marginTop: 0,
-    textShadowColor: 'rgba(0,0,0,0.15)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 6,
-  },
   stepIndicator: {
     color: 'rgba(0, 171, 233, 0.7)',
     fontSize: 16,
     marginTop: 8,
     marginBottom: 0,
-    textAlign: 'center'
-  },
-  formCard: {
-    width: '100%',
-    maxWidth: 480,
-    marginBottom: 18,
-    padding: 20,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.13)',
-    overflow: 'hidden',
-    position: 'relative',
-    alignItems: 'center',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#00abe9',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.10,
-        shadowRadius: 12,
-      },
-      android: {
-        elevation: 3
-      }
-    })
-  },
-  input: {
-    width: '100%',
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(0,110,157,0.2)',
-    color: '#222',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginBottom: 12,
-    fontSize: 16,
-  },
-  nextButton: {
-    width: '100%',
-    backgroundColor: '#00abe9',
-    borderRadius: 16,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  nextButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 18,
-    letterSpacing: 1,
-  },
-  captureButton: {
-    backgroundColor: '#00abe9',
-    borderRadius: 16,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginBottom: 10,
-    width: '100%'
-  },
-  captureButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 18,
-  },
-  submitButton: {
-    width: '100%',
-    backgroundColor: '#00abe9',
-    borderRadius: 16,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  submitButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 18,
-    letterSpacing: 1,
-  },
-  buttonOutline: {
-    width: '100%',
-    minHeight: 48,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 12,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderColor: 'rgba(0,171,233,0.5)',
-    borderWidth: 1,
-    borderRadius: 16
-  },
-  buttonOutlineText: {
-    color: '#00abe9',
-    fontSize: 16,
-    fontWeight: '600',
-    letterSpacing: 1
-  },
-  cameraInstructions: {
-    color: '#222',
-    fontSize: 16,
-    marginBottom: 16,
     textAlign: 'center',
+    fontFamily: FONT_FAMILY.regular,
   },
-  cameraContainer: {
-    flex: 1,
-    backgroundColor: 'black',
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  cameraPreviewContainer: {
-    width: '90%',
-    maxWidth: 480,
-    height: 300,
-    borderRadius: 12,
-    overflow: 'hidden',
-    marginBottom: 16,
-    position: 'relative',
-    backgroundColor: '#000'
-  },
-  cameraPreview: {
-    flex: 1,
-  },
-  closeCameraButton: {
-    backgroundColor: '#e53935',
-    borderRadius: 16,
-    paddingVertical: 10,
-    paddingHorizontal: 24,
-    alignItems: 'center',
-    marginTop: 10
-  },
-  closeCameraText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  imagePreviewContainer: {
-    width: '100%',
-    alignItems: 'center',
-  },
-  imagePreview: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    marginBottom: 10,
-    borderWidth: 2,
-    borderColor: 'white',
-  },
-  retakeButton: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-  },
-  retakeButtonText: {
-    color: 'white',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContainer: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 20,
-    alignItems: 'center',
-    width: '80%',
-    maxWidth: 400,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#333',
-  },
-  modalMessage: {
-    fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 20,
-    color: '#555',
-  },
-  modalButton: {
-    backgroundColor: 'rgb(0, 171, 233)',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-  },
-  modalButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  errorText: {
-    color: 'red',
-    fontSize: 16,
-    marginTop: 10,
-    textAlign: 'center'
-  }
-})
+});
 
 export default AddFamily
 

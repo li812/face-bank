@@ -1,5 +1,15 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Platform, ActivityIndicator, Dimensions, Image } from 'react-native'
+import { 
+  View, 
+  Text, 
+  TouchableOpacity, 
+  StyleSheet, 
+  ScrollView, 
+  ActivityIndicator, 
+  Dimensions, 
+  Image,
+  TouchableNativeFeedback
+} from 'react-native'
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons'
 import axios from 'axios'
 import { API_URL } from '../../config'
@@ -8,12 +18,11 @@ import { StatusBar } from 'expo-status-bar'
 import { BlurView } from 'expo-blur'
 import { useNavigation } from '@react-navigation/native'
 
-import AddAccount from './AddAccount'
-import ViewAccount from './ViewAccount'
-import ExchangeRate from './ExchangeRate'
-import AddFamily from './AddFamily'
-
-const { width, height } = Dimensions.get('window')
+// Import the unified stylesheet
+import styleSheet, { colors, typography, layout, components, dashboard, PLATFORM } from '../../appStyleSheet'
+import CrossPlatformBlur from '../../components/CrossPlatformBlur'
+import CrossPlatformTouchable from '../../components/CrossPlatformTouchable'
+import { IS_IOS, FONT_FAMILY } from '../../utils/platformUtils'
 
 const UserDashboard = ({ username }) => {
   const navigation = useNavigation()
@@ -60,54 +69,56 @@ const UserDashboard = ({ username }) => {
   const totalBalance = accounts.reduce((sum, acc) => sum + (Number(acc.balance) || 0), 0)
 
   return (
-    <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={layout.safeArea} edges={['top', 'left', 'right']}>
       <StatusBar style="light" backgroundColor="transparent" translucent />
       {/* Background Image */}
       <Image
         source={require('../../assets/background/bg1.png')}
-        style={styles.backgroundImage}
+        style={components.backgroundImage}
         resizeMode="cover"
-        pointerEvents="none" // <-- Add this
+        pointerEvents="none"
       />
       {/* Overlay for glass effect */}
-      <View
-        style={[styles.gradient, { backgroundColor: 'rgba(0, 0, 0, 0)' }]}
-        pointerEvents="none" // <-- Add this
-      />
-      <ScrollView contentContainerStyle={styles.container}>
-        
-        <View style={styles.headerContainer}>
-          <BlurView tint="light" intensity={100} style={StyleSheet.absoluteFill} />
-          <MaterialIcons name="account-circle" size={72} color="#00abe9" style={styles.avatar} />
-          <Text style={styles.welcome}>Welcome, {fullName}!</Text>
-          <Text style={styles.balanceLabel}>Available Balance</Text>
+      <View style={components.gradient} pointerEvents="none" />
+      
+      <ScrollView contentContainerStyle={layout.container}>
+        <View style={[components.headerContainer, { paddingVertical: 16 }]}>
+          <CrossPlatformBlur 
+            intensity={100} 
+            tint="light" 
+            style={StyleSheet.absoluteFill}
+            fallbackColor="rgba(255, 255, 255, 0.15)"
+          />
+          <MaterialIcons name="account-circle" size={72} color={colors.primary} style={dashboard.avatar} />
+          <Text style={dashboard.welcome}>{fullName}</Text>
+          <Text style={dashboard.balanceLabel}>Available Balance</Text>
+          
           {loading ? (
-            <ActivityIndicator color="#00abe9" size="large" style={{ marginVertical: 12 }} />
+            <ActivityIndicator color={colors.primary} size="large" style={{ marginVertical: 12 }} />
           ) : error ? (
-            <Text style={[styles.balance, { color: 'red', fontSize: 16 }]}>{error}</Text>
+            <Text style={[dashboard.balance, { color: colors.error, fontSize: 16 }]}>{error}</Text>
           ) : accounts.length === 0 ? (
             <>
-              <Text style={styles.balance}>₹ 0.00</Text>
-              <Text style={{ color: '#fff', marginTop: 8, marginBottom: 8, fontSize: 16 }}>
+              <Text style={dashboard.balance}>₹ 0.00</Text>
+              <Text style={{ color: colors.white, marginTop: 8, marginBottom: 8, fontSize: 16 }}>
                 No accounts found.
               </Text>
-              <TouchableOpacity
-                style={[styles.card, { backgroundColor: '#00abe9', marginTop: 8 }]}
+              <CrossPlatformTouchable
+                style={[dashboard.card, { backgroundColor: colors.primary, marginTop: 8 }]}
                 onPress={() => navigation.navigate('AddAccount')}
               >
-                <BlurView tint="light" intensity={100} style={StyleSheet.absoluteFill} />
-                <Text style={{ color: '#fff', fontWeight: 'bold' }}>+ Add Your First Account</Text>
-              </TouchableOpacity>
+                <Text style={{ color: colors.white, fontWeight: 'bold' }}>+ Add Your First Account</Text>
+              </CrossPlatformTouchable>
             </>
           ) : (
             <>
-              <Text style={styles.balance}>₹ {totalBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</Text>
-              <TouchableOpacity
+              <Text style={dashboard.balance}>₹ {totalBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</Text>
+              <CrossPlatformTouchable
                 style={{
                   alignSelf: 'center',
                   marginTop: 4,
                   marginBottom: 8,
-                  backgroundColor: 'rgba(0,171,233,0.08)',
+                  backgroundColor: colors.primaryLight,
                   borderRadius: 20,
                   padding: 6,
                   width: 36,
@@ -117,211 +128,129 @@ const UserDashboard = ({ username }) => {
                 }}
                 onPress={fetchAccounts}
                 disabled={refreshing}
-                accessibilityLabel="Refresh Balance"
               >
                 <MaterialIcons
                   name="refresh"
                   size={22}
-                  color={refreshing ? "#aaa" : "#00abe9"}
+                  color={refreshing ? "#aaa" : colors.primary}
                   style={{ transform: [{ rotate: refreshing ? '360deg' : '0deg' }] }}
                 />
-              </TouchableOpacity>
+              </CrossPlatformTouchable>
             </>
           )}
         </View>
-        <View style={styles.cardsRow}>
-        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('ViewAccount')}>
-          <BlurView tint="light" intensity={100} style={StyleSheet.absoluteFill} />
-          <MaterialIcons name="account-balance-wallet" size={36} color="#00abe9" style={styles.cardIcon} />
-            <Text style={styles.cardText}>View Account</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('AddAccount')}>
-            <BlurView tint="light" intensity={100} style={StyleSheet.absoluteFill} />
-            <MaterialIcons name="add-card" size={36} color="#00abe9" style={styles.cardIcon} />
-            <Text style={styles.cardText}>Add Account</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('ViewTransactions')}>
-          <BlurView tint="light" intensity={100} style={StyleSheet.absoluteFill} />
-            <MaterialIcons name="receipt-long" size={36} color="#00abe9" style={styles.cardIcon} />
-            <Text style={styles.cardText}>Transactions</Text>
-          </TouchableOpacity>
+
+        {/* Row 1: Account Management */}
+        <View style={dashboard.cardsRow}>
+          <CrossPlatformTouchable 
+            style={dashboard.card} 
+            onPress={() => navigation.navigate('ViewAccount')}
+            background={!IS_IOS ? TouchableNativeFeedback.Ripple('rgba(0, 0, 0, 0.1)', true) : undefined}
+          >
+            <CrossPlatformBlur intensity={100} tint="light" style={StyleSheet.absoluteFill} fallbackColor="rgba(255, 255, 255, 0.15)" />
+            <MaterialIcons name="account-balance-wallet" size={36} color={colors.primary} style={dashboard.cardIcon} />
+            <Text style={dashboard.cardText}>View Account</Text>
+          </CrossPlatformTouchable>
+          
+          <CrossPlatformTouchable 
+            style={dashboard.card} 
+            onPress={() => navigation.navigate('AddAccount')}
+            background={!IS_IOS ? TouchableNativeFeedback.Ripple('rgba(0, 0, 0, 0.1)', true) : undefined}
+          >
+            <CrossPlatformBlur intensity={100} tint="light" style={StyleSheet.absoluteFill} fallbackColor="rgba(255, 255, 255, 0.15)" />
+            <MaterialIcons name="add-card" size={36} color={colors.primary} style={dashboard.cardIcon} />
+            <Text style={dashboard.cardText}>Add Account</Text>
+          </CrossPlatformTouchable>
+          
+          <CrossPlatformTouchable 
+            style={dashboard.card} 
+            onPress={() => navigation.navigate('ViewTransactions')}
+            background={!IS_IOS ? TouchableNativeFeedback.Ripple('rgba(0, 0, 0, 0.1)', true) : undefined}
+          >
+            <CrossPlatformBlur intensity={100} tint="light" style={StyleSheet.absoluteFill} fallbackColor="rgba(255, 255, 255, 0.15)" />
+            <MaterialIcons name="receipt-long" size={36} color={colors.primary} style={dashboard.cardIcon} />
+            <Text style={dashboard.cardText}>Transactions</Text>
+          </CrossPlatformTouchable>
         </View>
 
-        <View style={styles.cardsRow}>
-          <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('AddFamily', { username })}>
-          <BlurView tint="light" intensity={100} style={StyleSheet.absoluteFill} />
-          <MaterialIcons name="group-add" size={36} color="#00abe9" style={styles.cardIcon} />
-            <Text style={styles.cardText}>Add Family</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('ApplyLoan')}>
-            <BlurView tint="light" intensity={100} style={StyleSheet.absoluteFill} />
-            <MaterialIcons name="account-balance" size={36} color="#00abe9" style={styles.cardIcon} />
-            <Text style={styles.cardText}>Apply Loan</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('ExchangeRate')}>
-            <BlurView tint="light" intensity={100} style={StyleSheet.absoluteFill} />
-            <MaterialIcons name="currency-exchange" size={36} color="#00abe9" style={styles.cardIcon} />
-            <Text style={styles.cardText}>Exchange Rate</Text>
-          </TouchableOpacity>
+        {/* Row 2: Financial Services */}
+        <View style={dashboard.cardsRow}>
+          <CrossPlatformTouchable 
+            style={dashboard.card} 
+            onPress={() => navigation.navigate('AddFamily', { username })}
+            background={!IS_IOS ? TouchableNativeFeedback.Ripple('rgba(0, 0, 0, 0.1)', true) : undefined}
+          >
+            <CrossPlatformBlur intensity={100} tint="light" style={StyleSheet.absoluteFill} fallbackColor="rgba(255, 255, 255, 0.15)" />
+            <MaterialIcons name="group-add" size={36} color={colors.primary} style={dashboard.cardIcon} />
+            <Text style={dashboard.cardText}>Add Family</Text>
+          </CrossPlatformTouchable>
+          
+          <CrossPlatformTouchable 
+            style={dashboard.card} 
+            onPress={() => navigation.navigate('ApplyLoan')}
+            background={!IS_IOS ? TouchableNativeFeedback.Ripple('rgba(0, 0, 0, 0.1)', true) : undefined}
+          >
+            <CrossPlatformBlur intensity={100} tint="light" style={StyleSheet.absoluteFill} fallbackColor="rgba(255, 255, 255, 0.15)" />
+            <MaterialIcons name="account-balance" size={36} color={colors.primary} style={dashboard.cardIcon} />
+            <Text style={dashboard.cardText}>Apply Loan</Text>
+          </CrossPlatformTouchable>
+          
+          <CrossPlatformTouchable 
+            style={dashboard.card} 
+            onPress={() => navigation.navigate('ExchangeRate')}
+            background={!IS_IOS ? TouchableNativeFeedback.Ripple('rgba(0, 0, 0, 0.1)', true) : undefined}
+          >
+            <CrossPlatformBlur intensity={100} tint="light" style={StyleSheet.absoluteFill} fallbackColor="rgba(255, 255, 255, 0.15)" />
+            <MaterialIcons name="currency-exchange" size={36} color={colors.primary} style={dashboard.cardIcon} />
+            <Text style={dashboard.cardText}>Exchange Rate</Text>
+          </CrossPlatformTouchable>
         </View>
 
-        <View style={styles.cardsRow}>
-          <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('SendComplaints')}>
-            <BlurView tint="light" intensity={100} style={StyleSheet.absoluteFill} />
-            <MaterialIcons name="report-problem" size={36} color="#00abe9" style={styles.cardIcon} />
-            <Text style={styles.cardText}>Send Complaint</Text>
-          </TouchableOpacity>
+        {/* Row 3: Support Services */}
+        <View style={dashboard.cardsRow}>
+          <CrossPlatformTouchable 
+            style={dashboard.card} 
+            onPress={() => navigation.navigate('SendComplaints')}
+            background={!IS_IOS ? TouchableNativeFeedback.Ripple('rgba(0, 0, 0, 0.1)', true) : undefined}
+          >
+            <CrossPlatformBlur intensity={100} tint="light" style={StyleSheet.absoluteFill} fallbackColor="rgba(255, 255, 255, 0.15)" />
+            <MaterialIcons name="report-problem" size={36} color={colors.primary} style={dashboard.cardIcon} />
+            <Text style={dashboard.cardText}>Send Complaint</Text>
+          </CrossPlatformTouchable>
 
-          <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('ManageComplaints')}>
-          <BlurView tint="light" intensity={100} style={StyleSheet.absoluteFill} />
-            <MaterialCommunityIcons name="account-cog-outline" size={36} color="#00abe9" style={styles.cardIcon} />
-            <Text style={styles.cardText}>Manage Complaints</Text>
-          </TouchableOpacity>
+          <CrossPlatformTouchable 
+            style={dashboard.card} 
+            onPress={() => navigation.navigate('ManageComplaints')}
+            background={!IS_IOS ? TouchableNativeFeedback.Ripple('rgba(0, 0, 0, 0.1)', true) : undefined}
+          >
+            <CrossPlatformBlur intensity={100} tint="light" style={StyleSheet.absoluteFill} fallbackColor="rgba(255, 255, 255, 0.15)" />
+            <MaterialCommunityIcons name="account-cog-outline" size={36} color={colors.primary} style={dashboard.cardIcon} />
+            <Text style={dashboard.cardText}>Manage Complaints</Text>
+          </CrossPlatformTouchable>
         </View>
-
-
       </ScrollView>
     </SafeAreaView>
   )
 }
 
-const styles = StyleSheet.create({
-  backgroundImage: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    width: undefined,
-    height: undefined,
-    zIndex: 0
-  },
-  gradient: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-    zIndex: 1
-  },
-  container: {
-    flexGrow: 1,
-    alignItems: 'center',
-    paddingVertical: 1,
-    paddingHorizontal: 10, // Reduce horizontal padding for small screens
-    zIndex: 2,
-    minHeight: height,
-  },
-  headerContainer: {
-    width: '100%',
-    maxWidth: 480,
-    alignItems: 'center',
-    marginTop: 2,
-    marginBottom: 10,
-    paddingTop: 10,
-    paddingBottom: 10,
-    paddingHorizontal: 1,
-    overflow: 'hidden',
-    position: 'relative',
-    borderRadius: 24,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-  },
-  avatar: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    marginBottom: 12,
-    borderWidth: 2,
-    borderColor: '#00abe9',
-    backgroundColor: '#fff'
-  },
+// Add some supplementary dashboard styles (only needed for this component)
+const supplementaryStyles = {
   welcome: {
     fontSize: 25,
     fontWeight: '700',
-    color: '#fff',
+    color: colors.white,
     marginTop: 10,
     marginBottom: 10,
     letterSpacing: 1.2,
     textShadowColor: 'rgba(0,0,0,0.3)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 6,
-    textAlign: 'center'
-  },
-  balanceLabel: {
-    color: 'rgba(25, 25, 25, 0.7)',
-    fontSize: 14,
-    marginTop: 8,
-    marginBottom: 2,
-    letterSpacing: 1,
-    textAlign: 'center'
-  },
-  balance: {
-    color: '#00abe9',
-    fontSize: 26,
-    fontWeight: 'bold',
-    letterSpacing: 1.5,
-    marginBottom: 8,
-    textShadowColor: 'rgba(0,171,233,0.25)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 8,
-    textAlign: 'center'
-  },
-  cardsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-    maxWidth: 480,
-    marginBottom: 10,
-    gap: 8,
-  },
-  card: {
-    flex: 1,
-    minWidth: 0,
-    alignItems: 'center',
-    borderRadius: 20,
-    paddingVertical: 15,
-    marginHorizontal: 2,
-    marginBottom: 2,
-    overflow: 'hidden',
-    position: 'relative',
-    backgroundColor: 'rgba(255,255,255,0.13)',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#00abe9',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.10,
-        shadowRadius: 12,
-      },
-      android: {
-        elevation: 3
-      }
-    })
-  },
-  cardIcon: {
-    marginBottom: 8,
-    opacity: 0.7
-  },
-  cardText: {
-    color: '#000',
-    fontSize: 15,
-    fontWeight: '600',
-    letterSpacing: 0.5,
-    textAlign: 'center'
-  },
-  actionButton: {
-    alignSelf: 'center',
-    marginTop: 20,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    backgroundColor: '#00abe9',
-  },
-  actionButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
     textAlign: 'center',
+    fontFamily: FONT_FAMILY.bold,
   }
-})
+};
+
+// Add welcome style to the existing dashboard object
+dashboard.welcome = supplementaryStyles.welcome;
 
 export default UserDashboard
