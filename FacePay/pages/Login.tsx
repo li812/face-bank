@@ -2,26 +2,24 @@ import React, { useState, useRef, useEffect } from 'react'
 import {
   View,
   Text,
-  TouchableOpacity,
-  Platform,
   StatusBar,
   TextInput,
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   ScrollView,
   Modal,
   Image,
-  StyleSheet
+  StyleSheet,
+  Platform
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { CameraView, useCameraPermissions } from 'expo-camera'
-import { Video } from 'expo-av' // Import Video from expo-av instead of VideoView
+import { VideoView, useVideoPlayer } from 'expo-video' // Import VideoView and useVideoPlayer
 import axios from 'axios'
 import { API_URL } from '../config'
 
 // Import unified styling
-import styleSheet, { colors, typography, layout, components, login, PLATFORM } from '../appStyleSheet'
+import styleSheet, { colors, typography, layout, components, login } from '../appStyleSheet'
 import CrossPlatformBlur from '../components/CrossPlatformBlur'
 import CrossPlatformTouchable from '../components/CrossPlatformTouchable'
 import { IS_IOS, FONT_FAMILY } from '../utils/platformUtils'
@@ -116,35 +114,17 @@ const Login = ({ navigation }: any) => {
   const [isCameraActive, setIsCameraActive] = useState(false)
   const [permission, requestPermission] = useCameraPermissions()
   const cameraRef = useRef<CameraView>(null)
+  
+  // Create a video player using the same approach as Register.tsx
+  const player = useVideoPlayer(require('../assets/background/bg2.mp4'), player => {
+    player.loop = true;
+    player.muted = true;
+    player.playbackRate = 1.0;
+    player.play();
+  });
+  
+  // For backward compatibility, keep the videoRef for now
   const videoRef = useRef(null)
-
-  // Initialize and control the video background
-  useEffect(() => {
-    // Load and play the video when component mounts
-    if (videoRef.current) {
-      const setupVideo = async () => {
-        try {
-          await videoRef.current.loadAsync(
-            require('../assets/background/bg2.mp4'),
-            { isLooping: true }
-          );
-          
-          await videoRef.current.setVolumeAsync(0);
-          await videoRef.current.playAsync();
-        } catch (error) {
-          console.error("Video playback error:", error);
-        }
-      };
-      
-      setupVideo();
-    }
-    
-    return () => {
-      if (videoRef.current) {
-        videoRef.current.unloadAsync();
-      }
-    };
-  }, []);
 
   // Step 1: Check username and determine account type
   const handleCheckUsername = async () => {
@@ -252,13 +232,11 @@ const Login = ({ navigation }: any) => {
     <>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent={true} />
       <View style={layout.fullScreen}>
-        {/* Replace the conditional rendering with Video component for both platforms */}
-        <Video
-          ref={videoRef}
+        {/* Use the same approach as Register.tsx - VideoView with useVideoPlayer */}
+        <VideoView
+          player={player}
           style={StyleSheet.absoluteFillObject}
-          resizeMode="cover"
-          shouldPlay={false} // Control this via useEffect
-          isMuted={true}
+          contentFit="cover"
         />
         
         <View style={[components.gradient, { backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1 }]} />

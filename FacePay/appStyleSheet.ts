@@ -1149,6 +1149,113 @@ export const login = {
 };
 
 
+// Register screen styles
+export const register = {
+  stepIndicator: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: 16,
+    marginBottom: 16,
+    textAlign: 'center',
+    fontFamily: FONT_FAMILY.regular,
+  },
+  formContainer: {
+    width: '100%',
+  },
+  cameraInstructions: {
+    color: colors.white,
+    fontSize: 16,
+    marginBottom: 16,
+    textAlign: 'center',
+    fontFamily: FONT_FAMILY.regular,
+  },
+  cameraPreviewContainer: {
+    width: '100%',
+    height: 300,
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 16,
+    position: 'relative',
+    backgroundColor: colors.black,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    ...createShadow(colors.primary, 0.2, 5, 10),
+  },
+  cameraPreview: {
+    flex: 1,
+  },
+  faceOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+  },
+  faceOverlayText: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    padding: 10,
+    borderRadius: 5,
+    fontFamily: FONT_FAMILY.bold,
+  },
+  thumbnailContainer: {
+    position: 'absolute',
+    bottom: 10,
+    right: 10,
+    borderWidth: 2,
+    borderColor: colors.white,
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+  thumbnailPreview: {
+    width: 80,
+    height: 80,
+  },
+  cameraButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  flipButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+  },
+  flipButtonText: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: '500',
+    fontFamily: FONT_FAMILY.medium,
+  },
+  imagePreviewContainer: {
+    width: '100%',
+    alignItems: 'center',
+  },
+  imagePreview: {
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    marginBottom: 10,
+    borderWidth: 2,
+    borderColor: colors.white,
+  },
+  retakeButton: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  retakeButtonText: {
+    color: colors.white,
+    fontFamily: FONT_FAMILY.medium,
+  },
+};
 
 
 
@@ -1162,6 +1269,8 @@ export const getTouchableComponent = () => {
 };
 
 
+
+// Make sure to add register to the default export
 export default {
   colors,
   typography,
@@ -1178,7 +1287,8 @@ export default {
   profile,
   transaction,
   home,
-  login,      // Add login to the default export
+  login,
+  register,     
   createShadow,
   PLATFORM,
   getTouchableComponent,

@@ -1,26 +1,31 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  Dimensions, 
-  TouchableOpacity, 
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
   Platform,
   StatusBar,
-  Image,
-  TextInput,
-  ScrollView,
-  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
-  Modal
+  ScrollView,
+  Modal,
+  ActivityIndicator,
+  Dimensions,
+  StyleSheet
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { CameraView, CameraType, useCameraPermissions } from 'expo-camera'
-import ModalSelector from 'react-native-modal-selector'
-import axios from 'axios'
+import { CameraView, useCameraPermissions, CameraType } from 'expo-camera'
 import { VideoView, useVideoPlayer } from 'expo-video'
+import axios from 'axios'
 import { API_URL } from '../config'
+import ModalSelector from 'react-native-modal-selector'
+
+// Import unified styling
+import styleSheet, { colors, typography, layout, components, register } from '../appStyleSheet'
+import CrossPlatformBlur from '../components/CrossPlatformBlur'
+import CrossPlatformTouchable from '../components/CrossPlatformTouchable'
+import { IS_IOS, FONT_FAMILY } from '../utils/platformUtils'
 
 const { width, height } = Dimensions.get('window')
 
@@ -211,14 +216,16 @@ const Register = ({ navigation }: any) => {
   if (!permission) return <View />
   if (!permission.granted) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>Camera permission is required for registration</Text>
-        <TouchableOpacity 
-          style={styles.button}
+      <View style={layout.fullScreen}>
+        <Text style={[typography.heading, { color: colors.white, textAlign: 'center', marginTop: 20 }]}>
+          Camera permission is required for registration
+        </Text>
+        <CrossPlatformTouchable 
+          style={[components.submitButton, { width: '80%', marginTop: 20 }]}
           onPress={requestPermission}
         >
-          <Text style={styles.buttonText}>Grant Permission</Text>
-        </TouchableOpacity>
+          <Text style={components.submitButtonText}>Grant Permission</Text>
+        </CrossPlatformTouchable>
       </View>
     )
   }
@@ -231,23 +238,23 @@ const Register = ({ navigation }: any) => {
         translucent={true} 
       />
       
-      <View style={styles.container}>
+      <View style={layout.fullScreen}>
         {/* Background Video */}
         <VideoView
           player={player}
-          style={styles.backgroundVideo}
+          style={StyleSheet.absoluteFillObject}
           contentFit="cover"
         />
 
         {/* Gradient overlay */}
-        <View
-          style={[styles.gradient, { backgroundColor: 'rgba(0, 0, 0, 0.67)' }]}
-          pointerEvents={Platform.OS === 'ios' && pickerFocused ? 'none' : 'auto'}
+        <View 
+          style={[components.gradient, { backgroundColor: 'rgba(0, 0, 0, 0.67)', zIndex: 1 }]}
+          pointerEvents={IS_IOS && pickerFocused ? 'none' : 'auto'}
         />
         
-        <SafeAreaView style={styles.safeArea}>
+        <SafeAreaView style={layout.safeArea}>
           <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            behavior={IS_IOS ? 'padding' : 'height'}
             style={{ flex: 1 }}
           >
             <ScrollView 
@@ -255,18 +262,18 @@ const Register = ({ navigation }: any) => {
               keyboardShouldPersistTaps="handled"
             >
               {/* Content area */}
-              <View style={styles.overlay}>
-                <View style={styles.glass}>
-                  <Text style={styles.heading}>Register</Text>
-                  <Text style={styles.stepIndicator}>Step {currentStep} of 3</Text>
+              <View style={layout.overlay}>
+                <View style={components.glass}>
+                  <Text style={typography.mainHeading}>Register</Text>
+                  <Text style={register.stepIndicator}>Step {currentStep} of 3</Text>
                   
                   {/* Step 1: Personal Details */}
                   {currentStep === 1 && (
-                    <View style={styles.formContainer}>
+                    <View style={register.formContainer}>
                       <TextInput
-                        style={styles.input}
+                        style={components.input}
                         placeholder="Username"
-                        placeholderTextColor="rgba(255,255,255,0.6)"
+                        placeholderTextColor="rgba(0, 0, 0, 0.7)"
                         value={formData.username}
                         onChangeText={(text) => handleChange('username', text)}
                         returnKeyType="next"
@@ -274,18 +281,18 @@ const Register = ({ navigation }: any) => {
                       />
                       
                       <TextInput
-                        style={styles.input}
+                        style={components.input}
                         placeholder="First Name"
-                        placeholderTextColor="rgba(255,255,255,0.6)"
+                        placeholderTextColor="rgba(0, 0, 0, 0.7)"
                         value={formData.first_name}
                         onChangeText={(text) => handleChange('first_name', text)}
                         returnKeyType="next"
                       />
                       
                       <TextInput
-                        style={styles.input}
+                        style={components.input}
                         placeholder="Last Name"
-                        placeholderTextColor="rgba(255,255,255,0.6)"
+                        placeholderTextColor="rgba(0, 0, 0, 0.7)"
                         value={formData.last_name}
                         onChangeText={(text) => handleChange('last_name', text)}
                         returnKeyType="next"
@@ -298,20 +305,22 @@ const Register = ({ navigation }: any) => {
                         keyExtractor={item => item.key}
                         labelExtractor={item => item.label}
                         onChange={(option) => handleChange('gender', option.label)}
+                        onModalOpen={() => setPickerFocused(true)}
+                        onModalClose={() => setPickerFocused(false)}
                       >
                         <TextInput
-                          style={styles.input}
+                          style={components.input}
                           editable={false}
                           placeholder="Gender"
                           value={formData.gender}
+                          placeholderTextColor="rgba(0, 0, 0, 0.7)"
                         />
                       </ModalSelector>
 
-
                       <TextInput
-                        style={styles.input}
+                        style={components.input}
                         placeholder="Email"
-                        placeholderTextColor="rgba(255,255,255,0.6)"
+                        placeholderTextColor="rgba(0, 0, 0, 0.7)"
                         value={formData.email}
                         onChangeText={(text) => handleChange('email', text)}
                         keyboardType="email-address"
@@ -320,124 +329,112 @@ const Register = ({ navigation }: any) => {
                       />
                       
                       <TextInput
-                        style={styles.input}
+                        style={components.input}
                         placeholder="Phone Number"
-                        placeholderTextColor="rgba(255,255,255,0.6)"
+                        placeholderTextColor="rgba(0, 0, 0, 0.7)"
                         value={formData.phone}
                         onChangeText={(text) => handleChange('phone', text)}
                         keyboardType="phone-pad"
                         returnKeyType="next"
                       />
                       
-                      <TouchableOpacity
-                        style={styles.button}
-                        activeOpacity={0.7}
+                      <CrossPlatformTouchable
+                        style={components.submitButton}
                         onPress={goToNextStep}
                       >
-                        <View style={[styles.buttonGradient, { backgroundColor: 'rgb(0, 171, 233)' }]}>
-                          <Text style={styles.buttonText}>Next</Text>
-                        </View>
-                      </TouchableOpacity>
+                        <Text style={components.submitButtonText}>Next</Text>
+                      </CrossPlatformTouchable>
                     </View>
                   )}
                   
                   {/* Step 2: Location Details */}
                   {currentStep === 2 && (
-                    <View style={styles.formContainer}>
-
+                    <View style={register.formContainer}>
                       <TextInput
-                        style={styles.input}
+                        style={components.input}
                         placeholder="Address"
-                        placeholderTextColor="rgba(255,255,255,0.6)"
+                        placeholderTextColor="rgba(0, 0, 0, 0.7)"
                         value={formData.address}
                         onChangeText={(text) => handleChange('address', text)}
                         returnKeyType="next"
                       />
 
                       <TextInput
-                        style={styles.input}
+                        style={components.input}
                         placeholder="City"
-                        placeholderTextColor="rgba(255,255,255,0.6)"
+                        placeholderTextColor="rgba(0, 0, 0, 0.7)"
                         value={formData.city}
                         onChangeText={(text) => handleChange('city', text)}
                         returnKeyType="next"
                       />
                       
                       <TextInput
-                        style={styles.input}
+                        style={components.input}
                         placeholder="State"
-                        placeholderTextColor="rgba(255,255,255,0.6)"
+                        placeholderTextColor="rgba(0, 0, 0, 0.7)"
                         value={formData.state}
                         onChangeText={(text) => handleChange('state', text)}
                         returnKeyType="next"
                       />
                       
                       <TextInput
-                        style={styles.input}
+                        style={components.input}
                         placeholder="Country"
-                        placeholderTextColor="rgba(255,255,255,0.6)"
+                        placeholderTextColor="rgba(0, 0, 0, 0.7)"
                         value={formData.country}
                         onChangeText={(text) => handleChange('country', text)}
                         returnKeyType="done"
                       />
                       
-                      <TouchableOpacity
-                        style={styles.button}
-                        activeOpacity={0.7}
+                      <CrossPlatformTouchable
+                        style={components.submitButton}
                         onPress={goToNextStep}
                       >
-                        <View style={[styles.buttonGradient, { backgroundColor: 'rgb(0, 171, 233)' }]}>
-                          <Text style={styles.buttonText}>Next</Text>
-                        </View>
-                      </TouchableOpacity>
+                        <Text style={components.submitButtonText}>Next</Text>
+                      </CrossPlatformTouchable>
                       
-                      <TouchableOpacity
-                        style={styles.buttonOutline}
-                        activeOpacity={0.7}
+                      <CrossPlatformTouchable
+                        style={components.buttonOutline}
                         onPress={goToPreviousStep}
                       >
-                        <Text style={styles.buttonOutlineText}>Back</Text>
-                      </TouchableOpacity>
+                        <Text style={components.buttonOutlineText}>Back</Text>
+                      </CrossPlatformTouchable>
                     </View>
                   )}
                   
                   {/* Step 3: Face Capture */}
                   {currentStep === 3 && (
-                    <View style={styles.formContainer}>
-                      <Text style={styles.cameraInstructions}>
+                    <View style={register.formContainer}>
+                      <Text style={register.cameraInstructions}>
                         Please look directly at the camera and ensure your face is clearly visible
                       </Text>
-                      <View style={styles.cameraPreviewContainer}>
+                      <View style={register.cameraPreviewContainer}>
                         {isCameraActive && (
                           <CameraView
                             ref={cameraRef}
-                            style={styles.cameraPreview}
+                            style={register.cameraPreview}
                             facing={facing}
                           />
                         )}
                       </View>
-                      <TouchableOpacity
-                        style={[styles.button, { opacity: loading ? 0.5 : 1 }]}
-                        activeOpacity={0.7}
+                      <CrossPlatformTouchable
+                        style={[components.submitButton, { opacity: loading ? 0.5 : 1 }]}
                         onPress={handleRegister}
                         disabled={loading}
                       >
-                        <View style={[styles.buttonGradient, { backgroundColor: 'rgb(0, 171, 233)' }]}>
-                          {loading ? (
-                            <ActivityIndicator color="#fff" size="small" />
-                          ) : (
-                            <Text style={styles.buttonText}>Register</Text>
-                          )}
-                        </View>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={styles.buttonOutline}
-                        activeOpacity={0.7}
+                        {loading ? (
+                          <ActivityIndicator color="#fff" size="small" />
+                        ) : (
+                          <Text style={components.submitButtonText}>Register</Text>
+                        )}
+                      </CrossPlatformTouchable>
+                      <CrossPlatformTouchable
+                        style={components.buttonOutline}
                         onPress={goToPreviousStep}
                         disabled={loading}
                       >
-                        <Text style={styles.buttonOutlineText}>Back to Location Details</Text>
-                      </TouchableOpacity>
+                        <Text style={components.buttonOutlineText}>Back to Location Details</Text>
+                      </CrossPlatformTouchable>
                     </View>
                   )}
                 </View>
@@ -446,7 +443,7 @@ const Register = ({ navigation }: any) => {
           </KeyboardAvoidingView>
 
           {/* Footer text */}
-          <Text style={styles.footer}>Secure • Fast • Trusted</Text>
+          <Text style={components.footer}>Secure • Fast • Trusted</Text>
           
           {/* Error Modal */}
           <Modal
@@ -454,16 +451,16 @@ const Register = ({ navigation }: any) => {
             transparent={true}
             animationType="fade"
           >
-            <View style={styles.modalOverlay}>
-              <View style={styles.modalContainer}>
-                <Text style={styles.modalTitle}>Error</Text>
-                <Text style={styles.modalMessage}>{errorMessage}</Text>
-                <TouchableOpacity
-                  style={styles.modalButton}
+            <View style={components.modalOverlay}>
+              <View style={components.modalContainer}>
+                <Text style={components.modalTitle}>Error</Text>
+                <Text style={components.modalMessage}>{errorMessage}</Text>
+                <CrossPlatformTouchable
+                  style={components.modalButton}
                   onPress={() => setShowError(false)}
                 >
-                  <Text style={styles.modalButtonText}>OK</Text>
-                </TouchableOpacity>
+                  <Text style={components.modalButtonText}>OK</Text>
+                </CrossPlatformTouchable>
               </View>
             </View>
           </Modal>
@@ -472,361 +469,5 @@ const Register = ({ navigation }: any) => {
     </>
   )
 }
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    zIndex: 2
-  },
-  container: {
-    flex: 1,
-    position: 'relative',
-    backgroundColor: 'black' 
-  },
-  backgroundVideo: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width,
-    height,
-    zIndex: 0
-  },
-  gradient: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-    zIndex: 1
-  },
-  overlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 2,
-    paddingVertical: 20
-  },
-  glass: {
-    width: '88%',
-    paddingVertical: 30,
-    paddingHorizontal: 24,
-    backgroundColor: 'rgba(30, 30, 40, 0.25)',
-    borderRadius: 24,
-    alignItems: 'center',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.2,
-        shadowRadius: 16,
-        backdropFilter: 'blur(16px)'
-      },
-      android: {
-        elevation: 8
-      }
-    })
-  },
-  heading: {
-    color: '#fff',
-    fontSize: 36,
-    fontWeight: 'bold',
-    letterSpacing: 2,
-    marginBottom: 20,
-    textShadowColor: 'rgba(0,0,0,0.5)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 8,
-    fontFamily: Platform.OS === 'ios' ? 'AvenirNext-Bold' : 'Roboto'
-  },
-  stepIndicator: {
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontSize: 16,
-    marginBottom: 16,
-  },
-  formContainer: {
-    width: '100%',
-  },
-  input: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
-    color: 'white',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginBottom: 12,
-    fontSize: 16,
-  },
-  pickerContainer: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
-    marginBottom: 12,
-  },
-  picker: {
-    color: 'white',
-    height: 50,
-  },
-  label: {
-    color: 'white',
-    marginBottom: 8,
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  faceContainer: {
-    marginTop: 16,
-    marginBottom: 24,
-    width: '100%',
-    alignItems: 'center',
-  },
-  captureButton: {
-    backgroundColor: 'rgba(0, 171, 233, 0.8)',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    alignItems: 'center',
-    width: '100%',
-  },
-  captureButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  cameraInstructions: {
-    color: 'white',
-    fontSize: 16,
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  cameraPreviewContainer: {
-    width: '100%',
-    height: 300,
-    borderRadius: 12,
-    overflow: 'hidden',
-    marginBottom: 16,
-    position: 'relative',
-  },
-  cameraPreview: {
-    flex: 1,
-  },
-  faceOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.3)',
-  },
-  faceOverlayText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    padding: 10,
-    borderRadius: 5,
-  },
-  thumbnailContainer: {
-    position: 'absolute',
-    bottom: 10,
-    right: 10,
-    borderWidth: 2,
-    borderColor: 'white',
-    borderRadius: 10,
-    overflow: 'hidden',
-  },
-  thumbnailPreview: {
-    width: 80,
-    height: 80,
-  },
-  cameraButtonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-  },
-  flipButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-  },
-  flipButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  imagePreviewContainer: {
-    width: '100%',
-    alignItems: 'center',
-  },
-  imagePreview: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    marginBottom: 10,
-    borderWidth: 2,
-    borderColor: 'white',
-  },
-  retakeButton: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-  },
-  retakeButtonText: {
-    color: 'white',
-  },
-  cameraContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'black',
-    zIndex: 10,
-  },
-  camera: {
-    flex: 1,
-  },
-  cameraControls: {
-    position: 'absolute',
-    bottom: 30,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 11,
-  },
-  capturePhotoButton: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  captureButtonInner: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
-    backgroundColor: 'white',
-  },
-  flipCameraButton: {
-    position: 'absolute',
-    right: 30,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    padding: 10,
-    borderRadius: 20,
-  },
-  flipCameraText: {
-    color: 'white',
-    fontSize: 14,
-  },
-  closeCameraButton: {
-    position: 'absolute',
-    left: 30,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    padding: 10,
-    borderRadius: 20,
-  },
-  closeCameraText: {
-    color: 'white',
-    fontSize: 14,
-  },
-  button: {
-    width: '100%',
-    borderRadius: 16,
-    overflow: 'hidden',
-    marginTop: 8,
-  },
-  buttonGradient: {
-    minHeight: 56,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 20
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
-    letterSpacing: 1
-  },
-  buttonOutline: {
-    width: '100%',
-    minHeight: 56,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 16,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderColor: 'rgba(255,255,255,0.5)',
-    borderWidth: 1,
-    borderRadius: 16
-  },
-  buttonOutlineText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
-    letterSpacing: 1
-  },
-  footer: {
-    position: 'absolute',
-    bottom: 20,
-    left: 0,
-    right: 0,
-    textAlign: 'center',
-    color: 'rgba(255,255,255,0.7)',
-    fontSize: 14,
-    letterSpacing: 1,
-    zIndex: 3,
-    fontFamily: Platform.OS === 'ios' ? 'AvenirNext-Regular' : 'Roboto'
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContainer: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 20,
-    alignItems: 'center',
-    width: '80%',
-    maxWidth: 400,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#333',
-  },
-  modalMessage: {
-    fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 20,
-    color: '#555',
-  },
-  modalButton: {
-    backgroundColor: 'rgb(0, 171, 233)',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-  },
-  modalButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  errorText: {
-    color: 'white',
-    fontSize: 18,
-    textAlign: 'center',
-    margin: 20,
-  }
-})
 
 export default Register
