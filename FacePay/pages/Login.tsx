@@ -103,7 +103,10 @@ const Login = ({ navigation }: any) => {
       })
       setLoading(false)
       if (response.data && response.data.redirect) {
-        navigation.replace('UserBase', { username })
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'UserBase', params: { username } }],
+        });
       } else {
         setErrorMessage(response.data.message || 'Face verification failed')
         setShowError(true)

@@ -39,9 +39,14 @@ const UserProfile = ({ navigation, username }) => {
       {
         text: 'Logout',
         style: 'destructive',
-        onPress: () => navigation.replace('Login')
+        onPress: () => {
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'Home' }],
+          });
+        }
       }
-    ])
+    ]);
   }
 
   return (
