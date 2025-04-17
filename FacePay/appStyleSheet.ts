@@ -19,7 +19,7 @@ export const PLATFORM = {
 
 // Colors
 export const colors = {
-  primary: 'rgb(0, 157, 255)',
+  primary: 'rgb(0, 195, 255)',
   primaryDark: '#0091c7',
   primaryLight: 'rgba(0, 171, 233, 0.08)',
   secondary: '#e53935',
@@ -1011,6 +1011,147 @@ export const transaction = {
   },
 };
 
+// Home screen specific styles
+export const home = {
+  container: {
+    flex: 1,
+    position: 'relative',
+    backgroundColor: colors.black
+  },
+  backgroundImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: undefined,
+    height: undefined,
+    zIndex: 0,
+  },
+  gradient: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    zIndex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)'
+  },
+  logoContainer: {
+    position: 'absolute',
+    top: 60,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 3
+  },
+  logo: {
+    width: 80,
+    height: 80
+  },
+  glass: {
+    width: '88%',
+    paddingVertical: 40,
+    paddingHorizontal: 24,
+    backgroundColor: 'rgba(0, 0, 0, 0.42)',
+    borderRadius: 24,
+    alignItems: 'center',
+    ...createShadow(colors.black, 0.2, 8, 16),
+    ...(IS_IOS && { backdropFilter: 'blur(16px)' }),
+  },
+  heading: {
+    color: colors.white,
+    fontSize: 42,
+    fontWeight: 'bold',
+    letterSpacing: 2,
+    marginBottom: 8,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
+    fontFamily: FONT_FAMILY.bold,
+  },
+  subheading: {
+    color: 'rgba(255,255,255,0.85)',
+    fontSize: 16,
+    marginBottom: 48,
+    textAlign: 'center',
+    fontFamily: FONT_FAMILY.medium,
+  },
+  buttonGroup: {
+    width: '100%',
+    alignItems: 'center',
+    gap: 16
+  },
+  button: {
+    width: '100%',
+    borderRadius: 16,
+    overflow: 'hidden'
+  },
+  buttonOutline: {
+    width: '100%',
+    minHeight: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 4,
+    backgroundColor: 'rgba(42, 42, 42, 0.07)',
+    borderColor: 'rgba(255,255,255,0.5)',
+    borderWidth: 1,
+    borderRadius: 16
+  },
+  buttonOutlineText: {
+    color: colors.white,
+    fontSize: 18,
+    fontWeight: '600',
+    letterSpacing: 1,
+    fontFamily: FONT_FAMILY.medium,
+  }
+};
+
+
+
+// Add this after the existing style sections (e.g. after transaction or home)
+
+// Login screen styles
+export const login = {
+  cameraInstructions: {
+    color: 'white',
+    fontSize: 16,
+    marginBottom: 16,
+    textAlign: 'center',
+    fontFamily: FONT_FAMILY.regular,
+  },
+  cameraPreviewContainer: {
+    width: '100%',
+    height: 300,
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 16,
+    position: 'relative',
+  },
+  cameraPreview: { 
+    flex: 1 
+  },
+  accountTypeIndicator: {
+    backgroundColor: 'rgba(0, 171, 233, 0.2)',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 171, 233, 0.4)',
+  },
+  accountTypeText: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    fontFamily: FONT_FAMILY.bold,
+  },
+};
+
+
+
+
+
 // Touchable component helper - to create a platform-specific touchable style
 export const getTouchableComponent = () => {
   if (!IS_IOS) {
@@ -1019,6 +1160,7 @@ export const getTouchableComponent = () => {
     return require('react-native').TouchableOpacity;
   }
 };
+
 
 export default {
   colors,
@@ -1034,7 +1176,9 @@ export default {
   exchangeRate,
   complaints,
   profile,
-  transaction,     // Add transaction styles to default export
+  transaction,
+  home,
+  login,      // Add login to the default export
   createShadow,
   PLATFORM,
   getTouchableComponent,

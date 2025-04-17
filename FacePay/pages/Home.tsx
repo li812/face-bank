@@ -2,16 +2,18 @@ import React from 'react'
 import { 
   View, 
   Text, 
-  StyleSheet, 
   Dimensions, 
-  TouchableOpacity, 
-  Platform,
+  TouchableOpacity,
   StatusBar,
   Image 
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
-const { width, height } = Dimensions.get('window')
+// Import unified styling
+import styleSheet, { colors, typography, layout, components, home } from '../appStyleSheet'
+import CrossPlatformBlur from '../components/CrossPlatformBlur'
+import CrossPlatformTouchable from '../components/CrossPlatformTouchable'
+import { IS_IOS } from '../utils/platformUtils'
 
 const Home = ({ navigation }: any) => {
   return (
@@ -21,197 +23,61 @@ const Home = ({ navigation }: any) => {
         backgroundColor="transparent" 
         translucent={true} 
       />
-      <View style={styles.container}>
+      <View style={home.container}>
         {/* Background Image */}
         <Image
           source={require('../assets/background/bg2.png')}
-          style={styles.backgroundImage}
+          style={home.backgroundImage}
           resizeMode="cover"
         />
 
         {/* Gradient overlay */}
-        <View style={[styles.gradient, { backgroundColor: 'rgba(0,0,0,0.5)' }]} />
+        <View style={home.gradient} />
 
         {/* Logo area */}
-        <View style={styles.logoContainer}>
+        <View style={home.logoContainer}>
           <Image 
             source={require('../assets/icons/logo.png')} 
-            style={styles.logo}
+            style={home.logo}
             resizeMode="contain"
           />
         </View>
 
-        <SafeAreaView style={styles.safeArea}>
+        <SafeAreaView style={layout.safeArea}>
           {/* Content area */}
-          <View style={styles.overlay}>
-            <View style={styles.glass}>
-              <Text style={styles.heading}>Face Pay</Text>
-              <Text style={styles.subheading}>Secure banking with facial recognition</Text>
+          <View style={layout.overlay}>
+            <View style={home.glass}>
+              <Text style={home.heading}>Face Pay</Text>
+              <Text style={home.subheading}>Secure banking with facial recognition</Text>
 
-              <View style={styles.buttonGroup}>
-                <TouchableOpacity
-                  style={styles.button}
-                  activeOpacity={0.7}
+              <View style={home.buttonGroup}>
+                <CrossPlatformTouchable
+                  style={home.button}
                   onPress={() => navigation && navigation.navigate('Login')}
-                >
-                  <View style={[styles.buttonGradient, { backgroundColor: 'rgb(0, 171, 233)' }]}>
-                    <Text style={styles.buttonText}>Login</Text>
-                  </View>
-                </TouchableOpacity>
-                
-                <TouchableOpacity
-                  style={styles.buttonOutline}
                   activeOpacity={0.7}
-                  onPress={() => navigation && navigation.navigate('Register')}
                 >
-                  <Text style={styles.buttonOutlineText}>Register</Text>
-                </TouchableOpacity>
+                  <View style={[components.buttonGradient, { backgroundColor: colors.primary }]}>
+                    <Text style={components.buttonText}>Login</Text>
+                  </View>
+                </CrossPlatformTouchable>
+                
+                <CrossPlatformTouchable
+                  style={home.buttonOutline}
+                  onPress={() => navigation && navigation.navigate('Register')}
+                  activeOpacity={0.7}
+                >
+                  <Text style={home.buttonOutlineText}>Register</Text>
+                </CrossPlatformTouchable>
               </View>
             </View>
           </View>
 
           {/* Footer text */}
-          <Text style={styles.footer}>Secure • Fast • Trusted</Text>
+          <Text style={components.footer}>Secure • Fast • Trusted</Text>
         </SafeAreaView>
       </View>
     </>
   )
 }
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    zIndex: 2
-  },
-  container: {
-    flex: 1,
-    position: 'relative',
-    backgroundColor: 'black'
-  },
-  backgroundImage: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width,
-    height,
-    zIndex: 0
-  },
-  gradient: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-    zIndex: 1
-  },
-  logoContainer: {
-    position: 'absolute',
-    top: 60,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    zIndex: 3
-  },
-  logo: {
-    width: 80,
-    height: 80
-  },
-  overlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 2
-  },
-  glass: {
-    width: '88%',
-    paddingVertical: 40,
-    paddingHorizontal: 24,
-    backgroundColor: 'rgba(0, 0, 0, 0.42)',
-    borderRadius: 24,
-    alignItems: 'center',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.2,
-        shadowRadius: 16,
-        backdropFilter: 'blur(16px)'
-      },
-      android: {
-        elevation: 8
-      }
-    })
-  },
-  heading: {
-    color: '#fff',
-    fontSize: 42,
-    fontWeight: 'bold',
-    letterSpacing: 2,
-    marginBottom: 8,
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 8,
-    fontFamily: Platform.OS === 'ios' ? 'AvenirNext-Bold' : 'Roboto'
-  },
-  subheading: {
-    color: 'rgba(255,255,255,0.85)',
-    fontSize: 16,
-    marginBottom: 48,
-    textAlign: 'center',
-    fontFamily: Platform.OS === 'ios' ? 'AvenirNext-Medium' : 'Roboto'
-  },
-  buttonGroup: {
-    width: '100%',
-    alignItems: 'center',
-    gap: 16
-  },
-  button: {
-    width: '100%',
-    borderRadius: 16,
-    overflow: 'hidden'
-  },
-  buttonGradient: {
-    minHeight: 56,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 20
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
-    letterSpacing: 1
-  },
-  buttonOutline: {
-    width: '100%',
-    minHeight: 56,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 4,
-    backgroundColor: 'rgba(42, 42, 42, 0.07)',
-    borderColor: 'rgba(255,255,255,0.5)',
-    borderWidth: 1,
-    borderRadius: 16
-  },
-  buttonOutlineText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
-    letterSpacing: 1
-  },
-  footer: {
-    position: 'absolute',
-    bottom: 40,
-    left: 0,
-    right: 0,
-    textAlign: 'center',
-    color: 'rgba(255,255,255,0.7)',
-    fontSize: 14,
-    letterSpacing: 1,
-    zIndex: 3,
-    fontFamily: Platform.OS === 'ios' ? 'AvenirNext-Regular' : 'Roboto'
-  }
-})
 
 export default Home
