@@ -7,6 +7,8 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from userapp.forms import UserComplaintForm
+from django.views.decorators.csrf import csrf_exempt
+
 
 # Email credentials
 SMTP_SERVER = "smtp.gmail.com"  # Change for Outlook/Yahoo
@@ -154,3 +156,4 @@ def complaint_reply(request, id):
 def view_all_user(request):
     user = UserModel.objects.all()
     return render(request, 'all_user.html', {'user': user})
+

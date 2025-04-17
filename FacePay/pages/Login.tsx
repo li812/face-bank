@@ -23,12 +23,83 @@ import { API_URL } from '../config'
 
 const { width, height } = Dimensions.get('window')
 
+// Check if username exists in either primary user or family member tables
 const checkUsername = async (username) => {
+  console.log(`[checkUsername] Checking if username exists: ${username}`);
+  
   try {
-    const response = await axios.post(`${API_URL}/check_username/`, { username });
-    return response.data.exists;
+    // First check if username exists in primary users
+    console.log(`[checkUsername] Checking primary user database...`);
+    const primaryResponse = await axios.post(`${API_URL}/check_username/`, { username });
+    
+    console.log(`[checkUsername] Primary check response:`, primaryResponse.data);
+    
+    if (primaryResponse.data.exists) {
+      console.log(`[checkUsername] Found in primary users!`);
+      return { exists: true, type: 'primary' };
+    }
+    
+    console.log(`[checkUsername] Not found in primary users, checking family members...`);
+    
+    // If not found in primary users, we need to check family members
+    // Create a direct endpoint for checking family usernames
+    try {
+      console.log(`[checkUsername] Making API call to check family member...`);
+      // Use a dedicated endpoint we'll create for checking family usernames
+      const familyResponse = await axios.post(`${API_URL}/check_family_username/`, { username });
+      
+      console.log(`[checkUsername] Family check response:`, familyResponse.data);
+      
+      if (familyResponse.data.exists) {
+        console.log(`[checkUsername] Found in family members!`);
+        return { exists: true, type: 'family' };
+      } else {
+        console.log(`[checkUsername] Not found in family members either.`);
+        return { exists: false, type: null };
+      }
+    } catch (err) {
+      // Fall back to the old method if our new endpoint isn't available yet
+      console.log(`[checkUsername] Error checking family member, falling back to error analysis:`, err.message);
+      
+      // Create a FormData object for the fallback method
+      const familyCheckFormData = new FormData();
+      familyCheckFormData.append('username', username);
+      
+      try {
+        // We don't send an actual image - this call will fail but let us know if user exists
+        const fallbackResponse = await axios.post(`${API_URL}/family_login/`, familyCheckFormData);
+        console.log(`[checkUsername] Fallback check unexpected success:`, fallbackResponse.data);
+        return { exists: false, type: null };
+      } catch (fallbackErr) {
+        console.log(`[checkUsername] Fallback check error:`, fallbackErr.response?.data);
+        
+        // Check if error response contains data that helps us identify if user exists
+        if (fallbackErr.response?.data) {
+          const errorMsg = fallbackErr.response.data.message || '';
+          console.log(`[checkUsername] Analyzing error message: "${errorMsg}"`);
+          
+          if (errorMsg.includes('not found') || 
+              errorMsg.includes('does not exist') || 
+              errorMsg.includes('Invalid data')) {
+            console.log(`[checkUsername] Error confirms user doesn't exist`);
+            return { exists: false, type: null };
+          } 
+          
+          if (errorMsg.includes('image') || 
+              errorMsg.includes('required') || 
+              errorMsg.includes('missing')) {
+            console.log(`[checkUsername] Error suggests user exists but image is missing`);
+            return { exists: true, type: 'family' };
+          }
+        }
+      }
+    }
+    
+    console.log(`[checkUsername] Could not determine if user exists, defaulting to not found`);
+    return { exists: false, type: null };
+    
   } catch (error) {
-    console.log('checkUsername error:', error?.response?.data, error?.message);
+    console.error('[checkUsername] Fatal error:', error?.response?.data, error?.message);
     throw error;
   }
 };
@@ -36,6 +107,7 @@ const checkUsername = async (username) => {
 const Login = ({ navigation }: any) => {
   const [currentStep, setCurrentStep] = useState(1)
   const [username, setUsername] = useState('')
+  const [accountType, setAccountType] = useState(null) // 'primary' or 'family'
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [showError, setShowError] = useState(false)
@@ -51,7 +123,7 @@ const Login = ({ navigation }: any) => {
     player.play()
   })
 
-  // Step 1: Check username
+  // Step 1: Check username and determine account type
   const handleCheckUsername = async () => {
     if (!username.trim()) {
       setErrorMessage('Please enter your username')
@@ -60,8 +132,9 @@ const Login = ({ navigation }: any) => {
     }
     setLoading(true)
     try {
-      const exists = await checkUsername(username)
+      const { exists, type } = await checkUsername(username)
       if (exists) {
+        setAccountType(type)
         setCurrentStep(2)
         setIsCameraActive(true)
       } else {
@@ -75,22 +148,26 @@ const Login = ({ navigation }: any) => {
     setLoading(false)
   }
 
-  // Step 2: Face verification
+  // Step 2: Face verification - use different endpoints based on account type
   const handleFaceVerify = async () => {
     if (!cameraRef.current) {
       setErrorMessage('Camera not ready')
       setShowError(true)
       return
     }
+    
     setLoading(true)
+    
     try {
       const photo = await cameraRef.current.takePictureAsync({ quality: 0.9 })
+      
       if (!photo?.uri) {
         setErrorMessage('Failed to capture photo')
         setShowError(true)
         setLoading(false)
         return
       }
+      
       const formData = new FormData()
       formData.append('username', username)
       formData.append('image', {
@@ -98,20 +175,32 @@ const Login = ({ navigation }: any) => {
         type: 'image/jpeg',
         name: 'login_photo.jpg'
       })
-      const response = await axios.post(`${API_URL}/login/`, formData, {
+      
+      // Choose API endpoint based on account type
+      const endpoint = accountType === 'primary' ? '/login/' : '/family_login/';
+      console.log(`Attempting ${accountType} login at endpoint: ${endpoint}`);
+      
+      const response = await axios.post(`${API_URL}${endpoint}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       })
+      
       setLoading(false)
+      
       if (response.data && response.data.redirect) {
+        // Navigate to the appropriate dashboard
         navigation.reset({
           index: 0,
-          routes: [{ name: 'UserBase', params: { username } }],
+          routes: [{ 
+            name: accountType === 'primary' ? 'UserBase' : 'FamilyBase',
+            params: { username }
+          }],
         });
       } else {
         setErrorMessage(response.data.message || 'Face verification failed')
         setShowError(true)
       }
     } catch (error: any) {
+      console.error('Login error:', error.message);
       setLoading(false)
       setErrorMessage('Login failed. Please try again.')
       setShowError(true)
@@ -150,6 +239,7 @@ const Login = ({ navigation }: any) => {
               <View style={styles.overlay}>
                 <View style={styles.glass}>
                   <Text style={styles.heading}>Login to Face Pay</Text>
+                  
                   {currentStep === 1 && (
                     <View style={styles.formContainer}>
                       <TextInput
@@ -178,8 +268,16 @@ const Login = ({ navigation }: any) => {
                       </TouchableOpacity>
                     </View>
                   )}
+                  
                   {currentStep === 2 && (
                     <View style={styles.formContainer}>
+                      {/* Display account type indicator */}
+                      <View style={styles.accountTypeIndicator}>
+                        <Text style={styles.accountTypeText}>
+                          {accountType === 'primary' ? 'Primary Account Login' : 'Family Member Login'}
+                        </Text>
+                      </View>
+                      
                       <Text style={styles.cameraInstructions}>
                         Please look directly at the camera and ensure your face is clearly visible
                       </Text>
@@ -216,6 +314,7 @@ const Login = ({ navigation }: any) => {
                       </TouchableOpacity>
                     </View>
                   )}
+                  
                   <TouchableOpacity
                     style={styles.buttonOutline}
                     activeOpacity={0.7}
@@ -227,7 +326,9 @@ const Login = ({ navigation }: any) => {
               </View>
             </ScrollView>
           </KeyboardAvoidingView>
+          
           <Text style={styles.footer}>Secure • Fast • Trusted</Text>
+          
           {/* Error Modal */}
           <Modal visible={showError} transparent={true} animationType="fade">
             <View style={styles.modalOverlay}>
@@ -296,6 +397,20 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     marginBottom: 12,
     fontSize: 16,
+  },
+  accountTypeIndicator: {
+    backgroundColor: 'rgba(0, 171, 233, 0.2)',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 171, 233, 0.4)',
+  },
+  accountTypeText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
   button: {
     width: '100%',

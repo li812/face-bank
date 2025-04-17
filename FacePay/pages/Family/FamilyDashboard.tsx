@@ -35,14 +35,48 @@ const FamilyDashboard = ({ username }) => {
   // Fetch user details for full name
   const fetchUserDetails = async () => {
     try {
-      const res = await axios.get(`${API_URL}/userPage`, { headers: { Accept: 'application/json' } })
-      if (res.data && res.data.user_data) {
-        setFullName(`${res.data.user_data.first_name} ${res.data.user_data.last_name}`)
-      } else {
-        setFullName(username)
+      // First try to get family member details
+      const familyRes = await axios.post(`${API_URL}/check_family_username/`, 
+        { username },
+        { headers: { Accept: 'application/json' } }
+      );
+      
+      if (familyRes.data && familyRes.data.exists) {
+        // If we confirmed this is a family member, get their specific details
+        try {
+          // Use the user accounts endpoint to query all accounts
+          const userAccRes = await axios.get(`${API_URL}/userAccount`, { 
+            headers: { Accept: 'application/json' } 
+          });
+          
+          // If we have both family username and accounts, we can query by the family username
+          // This should use the family_login backend to get family member by username
+          const res = await axios.get(`${API_URL}/family_details`, { 
+            params: { username },
+            headers: { Accept: 'application/json' } 
+          });
+          
+          if (res.data && res.data.family_data) {
+            // Use the family member's name from the response
+            setFullName(res.data.family_data.name);
+            return;
+          }
+        } catch (err) {
+          console.log('Could not fetch family details, using username');
+        }
       }
-    } catch {
-      setFullName(username)
+      
+      // Fallback: Try to extract name from the session data
+      const res = await axios.get(`${API_URL}/userPage`, { headers: { Accept: 'application/json' } });
+      if (res.data && !res.data.primary_user && res.data.family_data) {
+        setFullName(res.data.family_data.name);
+      } else {
+        // If we still don't have a name, just use the username as a last resort
+        setFullName(username);
+      }
+    } catch (err) {
+      console.error('Error fetching user details:', err?.message);
+      setFullName(username);
     }
   }
 
@@ -83,7 +117,7 @@ const FamilyDashboard = ({ username }) => {
       <StatusBar style="light" backgroundColor="transparent" translucent />
       {/* Background Image */}
       <Image
-        source={require('../../assets/background/bg1.png')}
+        source={require('../../assets/background/bg5.png')}
         style={components.backgroundImage}
         resizeMode="cover"
         pointerEvents="none"
@@ -148,7 +182,7 @@ const FamilyDashboard = ({ username }) => {
         <View style={dashboard.cardsRow}>
           <CrossPlatformTouchable 
             style={dashboard.card} 
-            onPress={() => navigation.navigate('ExchangeRate')}
+            onPress={() => navigation.navigate('FamExchangeRate')}
             background={!IS_IOS ? TouchableNativeFeedback.Ripple('rgba(0, 0, 0, 0.1)', true) : undefined}
           >
             <CrossPlatformBlur intensity={100} tint="light" style={StyleSheet.absoluteFill} fallbackColor="rgba(255, 255, 255, 0.15)" />
@@ -157,30 +191,6 @@ const FamilyDashboard = ({ username }) => {
           </CrossPlatformTouchable>
 
 
-        </View>
-
-        {/* Row 2: Financial Services */}
-        <View style={dashboard.cardsRow}>
-          <CrossPlatformTouchable 
-            style={dashboard.card} 
-            onPress={() => navigation.navigate('AddFamily', { username })}
-            background={!IS_IOS ? TouchableNativeFeedback.Ripple('rgba(0, 0, 0, 0.1)', true) : undefined}
-          >
-            <CrossPlatformBlur intensity={100} tint="light" style={StyleSheet.absoluteFill} fallbackColor="rgba(255, 255, 255, 0.15)" />
-            <MaterialIcons name="group-add" size={36} color={colors.primary} style={dashboard.cardIcon} />
-            <Text style={dashboard.cardText}>Add Family</Text>
-          </CrossPlatformTouchable>
-          
-          <CrossPlatformTouchable 
-            style={dashboard.card} 
-            onPress={() => navigation.navigate('ApplyLoan')}
-            background={!IS_IOS ? TouchableNativeFeedback.Ripple('rgba(0, 0, 0, 0.1)', true) : undefined}
-          >
-            <CrossPlatformBlur intensity={100} tint="light" style={StyleSheet.absoluteFill} fallbackColor="rgba(255, 255, 255, 0.15)" />
-            <MaterialIcons name="account-balance" size={36} color={colors.primary} style={dashboard.cardIcon} />
-            <Text style={dashboard.cardText}>Apply Loan</Text>
-          </CrossPlatformTouchable>
-          
 
         </View>
 

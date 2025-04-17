@@ -25,4 +25,6 @@ urlpatterns = [
     path('api/mobile_register_family/', views.mobile_register_family_member, name='mobile_register_family'),
     path('api/mobile_register_family', views.mobile_register_family_member, name='mobile_register_family'),
     path('api/mobile_register_family//', views.mobile_register_family_member, name='mobile_register_family'),
+    path('check_family_username/', views.check_family_username, name='check_family_username'),
+    path('family_details', views.get_family_details, name='family_details'),
 ]

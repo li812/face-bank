@@ -14,7 +14,7 @@ import { IS_IOS, FONT_FAMILY } from '../../utils/platformUtils'
 interface CurrencyMap { [key: string]: string }
 interface RateMap { [key: string]: number }
 
-const ExchangeRate = ({ navigation }) => {
+const FamExchangeRate = ({ navigation }) => {
   const [currencies, setCurrencies] = useState<CurrencyMap>({})
   const [base, setBase] = useState('USD')
   const [target, setTarget] = useState('INR')
@@ -238,4 +238,4 @@ const ExchangeRate = ({ navigation }) => {
   )
 }
 
-export default ExchangeRate
+export default FamExchangeRate

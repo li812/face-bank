@@ -10,6 +10,7 @@ import Home from './pages/Home'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import UserBase from './pages/User/UserBase'
+import FamilyBase from './pages/Family/FamilyBase'
 
 const Stack = createNativeStackNavigator()
 
@@ -19,17 +20,14 @@ const App = () => {
       <StatusBar style="light" backgroundColor="transparent" translucent />
       <NavigationContainer>
         <Stack.Navigator 
-          initialRouteName="Home"
-          screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor: 'black' },
-            animation: 'fade'
-          }}
+          initialRouteName="Home" 
+          screenOptions={{ headerShown: false }}
         >
           <Stack.Screen name="Home" component={Home} />
           <Stack.Screen name="Login" component={Login} />
           <Stack.Screen name="Register" component={Register} />
           <Stack.Screen name="UserBase" component={UserBase} />
+          <Stack.Screen name="FamilyBase" component={FamilyBase} />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>

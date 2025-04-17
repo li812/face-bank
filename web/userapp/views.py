@@ -305,46 +305,66 @@ def register_family_member(request):
 
 
 
+
 @csrf_exempt
 def family_login(request):
+    print("[family_login] Function called", request.method)
 
     if request.method == 'POST':
-        username = request.POST.get('username')  # Main user’s username
+        username = request.POST.get('username')
         image_file = request.FILES.get('image')
+        
+        print("[family_login] Username:", username)
+        print("[family_login] Image file provided:", image_file is not None)
 
-        if not username or not image_file:
-            return JsonResponse({"message": "Invalid data. Provide username, family member name, and image."})
-
-        # Process image
-        image = Image.open(image_file).convert("RGB")
-        face_embedding = get_face_embedding(image)
-        if face_embedding is None:
-            return JsonResponse({"message": "Failed to extract face features."})
-
+        if not username:
+            print("[family_login] Username not provided")
+            return JsonResponse({"message": "Username is required.", "success": False}, status=400)
+            
+        # Check if user exists before checking image
         try:
             family_member = FamilyModel.objects.get(username=username)
+            print(f"[family_login] Found family member: {family_member.username}")
+            
+            # If we're just checking if user exists (no image provided)
+            if not image_file:
+                print("[family_login] No image provided, this appears to be a user check")
+                return JsonResponse({"message": "Image is required for login.", "success": False}, status=400)
+                
+            # Proceed with face verification if image is provided
+            image = Image.open(image_file).convert("RGB")
+            face_embedding = get_face_embedding(image)
+            
+            if face_embedding is None:
+                print("[family_login] Failed to extract face features")
+                return JsonResponse({"message": "Failed to extract face features.", "success": False}, status=400)
+                
             stored_embedding = pickle.loads(family_member.embedding)
-            print(family_member.username)
-            user = family_member.account_username
-            request.session['user_id'] = user.id
+            # Store session info
+            request.session['user_id'] = family_member.account_username.id
             request.session['t_name'] = family_member.username
             request.session['primary_user'] = False
-
-        except (UserModel.DoesNotExist, FamilyModel.DoesNotExist):
-            return JsonResponse({"message": "Family member not found."})
-
-        # Verify face match
-        result = DeepFace.verify(stored_embedding, face_embedding, model_name="Facenet512")
-        similarity = 1 - result['distance']
-
-        if similarity > SIMILARITY_THRESHOLD:
-            request.session['family_member_id'] = family_member.id
-            return JsonResponse({"message": "Face verified successfully!", "redirect": "/userPage"})
-        else:
-            return JsonResponse({"message": f"Face verification failed. Similarity: {similarity:.2f}", "success": False})
+            
+            # Verify face
+            result = DeepFace.verify(stored_embedding, face_embedding, model_name="Facenet512")
+            similarity = 1 - result['distance']
+            print(f"[family_login] Face verification result: similarity = {similarity}")
+            
+            if similarity > SIMILARITY_THRESHOLD:
+                print("[family_login] Face verified successfully!")
+                return JsonResponse({"message": "Face verified successfully!", "redirect": "/userPage/", "success": True})
+            else:
+                print("[family_login] Face verification failed")
+                return JsonResponse({"message": f"Face verification failed. Similarity: {similarity:.2f}", "success": False})
+                
+        except FamilyModel.DoesNotExist:
+            print(f"[family_login] Family member not found: {username}")
+            return JsonResponse({"message": f"Family member '{username}' not found.", "success": False}, status=404)
+        except Exception as e:
+            print(f"[family_login] Error during login: {str(e)}")
+            return JsonResponse({"message": f"Login error: {str(e)}", "success": False}, status=500)
 
     return render(request, 'family_login.html')
-
 
 @csrf_exempt
 def transaction_face_verification(request):
@@ -676,3 +696,64 @@ def mobile_register_family_member(request):
     
     print("Family member registration successful!")
     return JsonResponse({"message": "Family member registered successfully!"})
+
+
+
+
+@csrf_exempt
+def check_family_username(request):
+    print("[check_family_username] Endpoint called", request.method)
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body.decode())
+            username = data.get('username')
+        except Exception:
+            username = request.POST.get('username')
+            
+        print("[check_family_username] Username to check:", username)
+        
+        if not username:
+            print("[check_family_username] No username provided")
+            return JsonResponse({'exists': False, 'message': 'No username provided.'})
+            
+        from .models import FamilyModel
+        exists = FamilyModel.objects.filter(username=username).exists()
+        print(f"[check_family_username] Username '{username}' exists: {exists}")
+        
+        return JsonResponse({'exists': exists})
+        
+    return JsonResponse({'message': 'Invalid request method.'}, status=405)
+
+
+
+@csrf_exempt
+def get_family_details(request):
+    """API endpoint to get family member details by username"""
+    if request.method == 'GET':
+        username = request.GET.get('username')
+        
+        if not username:
+            return JsonResponse({"message": "Username is required"}, status=400)
+            
+        try:
+            family_member = FamilyModel.objects.get(username=username)
+            
+            # Return family member information
+            return JsonResponse({
+                'family_data': {
+                    'id': family_member.id,
+                    'username': family_member.username,
+                    'name': family_member.name,
+                    'email': family_member.email,
+                    'phone': family_member.phone,
+                    'relationship': family_member.relationship,
+                    'date': str(family_member.date),
+                    'primary_account': family_member.account_username.username
+                },
+                'success': True
+            })
+            
+        except FamilyModel.DoesNotExist:
+            return JsonResponse({"message": f"Family member '{username}' not found."}, status=404)
+            
+    return JsonResponse({"message": "Invalid request method."}, status=405)

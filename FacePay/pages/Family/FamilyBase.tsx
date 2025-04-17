@@ -7,9 +7,8 @@ import { StyleSheet, View, Image } from 'react-native'
 // Import components from the app
 import FamilyDashboard from './FamilyDashboard'
 import FamilyMakeTransaction from './FamilyMakeTransaction'
-import UserProfile from './FamilyProfile'
-import ExchangeRate from './ExchangeRate'
-
+import FamilyProfile from './FamilyProfile'
+import FamExchangeRate from './FamExchangeRate'
 
 // Import the unified stylesheet and components
 import styleSheet, { colors, typography, layout, components, PLATFORM } from '../../appStyleSheet'
@@ -47,6 +46,7 @@ const TabScreens = ({ username, first_name, last_name, navigation }) => (
       tabBarIcon: ({ color, focused }) => {
         const size = 32
         if (route.name === 'Dashboard') {
+          // Fix the dashboard icon name - MaterialIcons has "dashboard" icon
           return <MaterialIcons name="dashboard" size={size} color={color} />
         }
         if (route.name === 'SendMoney') {
@@ -64,16 +64,7 @@ const TabScreens = ({ username, first_name, last_name, navigation }) => (
       },
       // Only allow tab buttons for the main tabs
       tabBarButton: (props) => {
-        if (
-          route.name === 'ViewAccount' ||
-          route.name === 'AddAccount' ||
-          route.name === 'ViewTransactions' ||
-          route.name === 'ApplyLoan' ||
-          route.name === 'SendComplaints' ||
-          route.name === 'ManageComplaints' ||
-          route.name === 'ExchangeRate' ||
-          route.name === 'AddFamily'
-        ) {
+        if (route.name === 'FamExchangeRate') {
           return null;
         }
         
@@ -89,12 +80,17 @@ const TabScreens = ({ username, first_name, last_name, navigation }) => (
       {props => <FamilyMakeTransaction {...props} username={username} />}
     </Tab.Screen>
     <Tab.Screen name="Profile">
-      {props => <UserProfile {...props} username={username} navigation={navigation} />}
+      {props => <FamilyProfile {...props} username={username} navigation={navigation} />}
+    </Tab.Screen>
+    
+    {/* Add FamExchangeRate as a hidden tab screen */}
+    <Tab.Screen name="FamExchangeRate" options={{ tabBarButton: () => null }}>
+      {props => <FamExchangeRate {...props} />}
     </Tab.Screen>
   </Tab.Navigator>
 )
 
-const UserBase = ({ route, navigation }: any) => {
+const FamilyBase = ({ route, navigation }: any) => {
   const { username, first_name, last_name } = route.params || {}
 
   return (
@@ -122,16 +118,9 @@ const UserBase = ({ route, navigation }: any) => {
         <Stack.Screen name="Tabs">
           {props => <TabScreens {...props} username={username} first_name={first_name} last_name={last_name} navigation={navigation} />}
         </Stack.Screen>
-        
-        {/* Additional screens that need to be outside the tab navigator */}
-        <Stack.Screen 
-          name="AddFamily" 
-          component={AddFamily}
-          initialParams={{ username }}
-        />
       </Stack.Navigator>
     </View>
   )
 }
 
-export default UserBase
+export default FamilyBase
