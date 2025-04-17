@@ -851,6 +851,47 @@ export const complaints = {
   },
 };
 
+// User Profile styles
+export const profile = {
+  avatar: {
+    marginBottom: 8,
+    opacity: 0.9
+  },
+  profileCard: {
+    width: '100%',
+    maxWidth: 480,
+    marginBottom: 35,
+    padding: 24,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.13)',
+    overflow: 'hidden',
+    position: 'relative',
+    alignItems: 'flex-start',
+    ...createShadow(colors.primary, 0.1, 3, 12),
+  },
+  logoutButton: {
+    position: 'absolute',
+    bottom: 92,
+    left: 24,
+    right: 24,
+    backgroundColor: colors.secondary,
+    borderRadius: 16,
+    paddingVertical: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 15,
+    ...createShadow(colors.secondary, 0.18, 4, 10),
+  },
+  logoutText: {
+    color: colors.white,
+    fontWeight: 'bold',
+    fontSize: 18,
+    marginLeft: 10,
+    fontFamily: FONT_FAMILY.bold,
+  }
+};
+
 // Touchable component helper - to create a platform-specific touchable style
 export const getTouchableComponent = () => {
   if (!IS_IOS) {
@@ -872,7 +913,8 @@ export default {
   transactions,
   loan,
   exchangeRate,
-  complaints,      
+  complaints,
+  profile,        // Add the profile styles to default export
   createShadow,
   PLATFORM,
   getTouchableComponent,

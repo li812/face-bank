@@ -1,17 +1,21 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Dimensions, Platform, Image } from 'react-native'
-import { BlurView } from 'expo-blur'
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Image } from 'react-native'
 import axios from 'axios'
 import { API_URL } from '../../config'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { StatusBar } from 'expo-status-bar'
+import { MaterialIcons } from '@expo/vector-icons'
 
-const { width, height } = Dimensions.get('window')
+// Import unified styling
+import styleSheet, { colors, typography, layout, components, complaints } from '../../appStyleSheet'
+import CrossPlatformBlur from '../../components/CrossPlatformBlur'
+import CrossPlatformTouchable from '../../components/CrossPlatformTouchable'
+import { IS_IOS, FONT_FAMILY } from '../../utils/platformUtils'
 
 const FILTERS = ['All', 'Pending', 'Processing', 'Completed']
 
 const ManageComplaints = ({ navigation, username }) => {
-  const [complaints, setComplaints] = useState([])
+  const [complaintData, setComplaints] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [filter, setFilter] = useState('All')
@@ -40,57 +44,90 @@ const ManageComplaints = ({ navigation, username }) => {
 
   // Filter complaints based on selected filter
   const filteredComplaints = filter === 'All'
-    ? complaints
-    : complaints.filter(item => item.status === filter)
+    ? complaintData
+    : complaintData.filter(item => item.status === filter)
 
   return (
-    <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={layout.safeArea} edges={['top', 'left', 'right']}>
       <StatusBar style="light" backgroundColor="transparent" translucent />
       <Image
         source={require('../../assets/background/bg1.png')}
-        style={styles.backgroundImage}
+        style={components.backgroundImage}
         resizeMode="cover"
         pointerEvents="none"
       />
-      <View style={styles.gradient} pointerEvents="none" />
-      <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.headerContainer}>
-          <BlurView tint="light" intensity={100} style={StyleSheet.absoluteFill} />
-          <Text style={styles.heading}>Your Complaints</Text>
-          <TouchableOpacity onPress={handleRefresh} style={styles.refreshButton}>
-            <Text style={{ color: '#00abe9', fontWeight: 'bold' }}>Refresh</Text>
-          </TouchableOpacity>
+      <View style={components.gradient} pointerEvents="none" />
+      <ScrollView contentContainerStyle={layout.container}>
+        <View style={components.headerContainer}>
+          <CrossPlatformBlur 
+            intensity={100}
+            tint="light"
+            style={StyleSheet.absoluteFill}
+            fallbackColor="rgba(255, 255, 255, 0.15)" 
+          />
+          <MaterialIcons name="feedback" size={48} color={colors.primary} style={{ marginBottom: 8 }} />
+          <Text style={typography.heading}>Your Complaints</Text>
+          <CrossPlatformTouchable 
+            onPress={handleRefresh} 
+            style={{
+              marginTop: 10,
+              padding: 6,
+              borderRadius: 12,
+              backgroundColor: 'rgba(0,171,233,0.08)'
+            }}
+          >
+            <Text style={{ color: colors.primary, fontWeight: 'bold', fontFamily: FONT_FAMILY.bold }}>Refresh</Text>
+          </CrossPlatformTouchable>
         </View>
+        
         {/* Filter Buttons */}
-        <View style={styles.filterRow}>
+        <View style={complaints.filterRow}>
           {FILTERS.map(f => (
-            <TouchableOpacity
+            <CrossPlatformTouchable
               key={f}
               style={[
-                styles.filterButton,
-                filter === f && styles.filterButtonActive
+                complaints.filterButton,
+                filter === f && complaints.filterButtonActive
               ]}
               onPress={() => setFilter(f)}
             >
-              <Text style={{ color: filter === f ? '#fff' : '#00abe9', fontWeight: 'bold' }}>{f}</Text>
-            </TouchableOpacity>
+              <Text style={{ 
+                color: filter === f ? colors.white : colors.primary, 
+                fontWeight: 'bold',
+                fontFamily: FONT_FAMILY.bold
+              }}>
+                {f}
+              </Text>
+            </CrossPlatformTouchable>
           ))}
         </View>
+        
         {loading ? (
-          <ActivityIndicator color="#00abe9" size="large" style={{ marginTop: 32 }} />
+          <ActivityIndicator color={colors.primary} size="large" style={{ marginTop: 32 }} />
         ) : error ? (
-          <Text style={[styles.errorText, { marginTop: 32 }]}>{error}</Text>
+          <Text style={[components.errorText, { marginTop: 32 }]}>{error}</Text>
         ) : filteredComplaints.length === 0 ? (
-          <Text style={[styles.errorText, { marginTop: 32 }]}>No complaints found.</Text>
+          <Text style={[components.errorText, { marginTop: 32 }]}>No complaints found.</Text>
         ) : (
           filteredComplaints.map((item, idx) => (
-            <View style={styles.complaintCard} key={idx}>
-              <BlurView tint="light" intensity={80} style={StyleSheet.absoluteFill} />
-              <Text style={styles.label}>Complaint:</Text>
-              <Text style={styles.value}>{item.complaint}</Text>
-              <Text style={styles.label}>Reply:</Text>
-              <Text style={styles.value}>{item.reply || 'No reply yet.'}</Text>
-              <Text style={styles.label}>Status: <Text style={{ color: item.status === 'Completed' ? '#00abe9' : '#e91e63' }}>{item.status}</Text></Text>
+            <View style={complaints.complaintCard} key={idx}>
+              <CrossPlatformBlur 
+                intensity={80} 
+                tint="light" 
+                style={StyleSheet.absoluteFill}
+                fallbackColor="rgba(255, 255, 255, 0.1)"
+              />
+              <Text style={typography.label}>Complaint:</Text>
+              <Text style={typography.value}>{item.complaint}</Text>
+              <Text style={typography.label}>Reply:</Text>
+              <Text style={typography.value}>{item.reply || 'No reply yet.'}</Text>
+              <Text style={typography.label}>Status: <Text style={{ 
+                color: item.status === 'Completed' ? colors.primary : colors.secondary,
+                fontWeight: 'bold',
+                fontFamily: FONT_FAMILY.bold
+              }}>
+                {item.status}
+              </Text></Text>
             </View>
           ))
         )}
@@ -98,131 +135,5 @@ const ManageComplaints = ({ navigation, username }) => {
     </SafeAreaView>
   )
 }
-
-
-
-
-const styles = StyleSheet.create({
-  backgroundImage: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    width: undefined,
-    height: undefined,
-    zIndex: 0
-  },
-  gradient: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-    zIndex: 1
-  },
-  container: {
-    flexGrow: 1,
-    alignItems: 'center',
-    paddingVertical: 24,
-    paddingHorizontal: 10,
-    zIndex: 2,
-    minHeight: height,
-    paddingBottom: 90,
-  },
-  headerContainer: {
-    width: '100%',
-    maxWidth: 480,
-    alignItems: 'center',
-    marginTop: 24,
-    marginBottom: 24,
-    paddingTop: 24,
-    paddingBottom: 12,
-    paddingHorizontal: 12,
-    overflow: 'hidden',
-    position: 'relative',
-    borderRadius: 24,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-  },
-  heading: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#00abe9',
-    letterSpacing: 1.2,
-    textAlign: 'center',
-    marginBottom: 0,
-    marginTop: 0,
-    textShadowColor: 'rgba(0,0,0,0.15)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 6,
-  },
-  refreshButton: {
-    marginTop: 10,
-    padding: 6,
-    borderRadius: 12,
-    backgroundColor: 'rgba(0,171,233,0.08)'
-  },
-  complaintCard: {
-    width: '100%',
-    maxWidth: 480,
-    marginBottom: 18,
-    padding: 20,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.13)',
-    overflow: 'hidden',
-    position: 'relative',
-    alignItems: 'flex-start',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#00abe9',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.10,
-        shadowRadius: 12,
-      },
-      android: {
-        elevation: 3
-      }
-    })
-  },
-  label: {
-    color: '#222',
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 2,
-    marginTop: 4
-  },
-  value: {
-    color: '#00abe9',
-    fontWeight: 'bold',
-    fontSize: 16,
-    marginBottom: 4
-  },
-  errorText: {
-    color: 'red',
-    fontSize: 16,
-    textAlign: 'center'
-  },
-  filterRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 10,
-
-    gap: 5,
-  },
-  filterButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 16,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#00abe9',
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    marginHorizontal: 1,
-  },
-  filterButtonActive: {
-    backgroundColor: '#00abe9',
-    borderColor: '#00abe9',
-  },
-
-})
 
 export default ManageComplaints
