@@ -1,12 +1,36 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, TextInput, Dimensions, Platform, Image, Alert, Modal } from 'react-native'
-import { BlurView } from 'expo-blur'
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  ScrollView, 
+  ActivityIndicator, 
+  TextInput, 
+  Dimensions, 
+  Platform, 
+  Image, 
+  Alert, 
+  Modal 
+} from 'react-native'
 import axios from 'axios'
 import { API_URL } from '../../config'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { StatusBar } from 'expo-status-bar'
 import { MaterialIcons } from '@expo/vector-icons'
 import { CameraView, useCameraPermissions, CameraType } from 'expo-camera'
+
+// Import unified styling
+import styleSheet, { 
+  colors, 
+  typography, 
+  layout, 
+  components, 
+  camera, 
+  transaction 
+} from '../../appStyleSheet'
+import CrossPlatformBlur from '../../components/CrossPlatformBlur'
+import CrossPlatformTouchable from '../../components/CrossPlatformTouchable'
+import { IS_IOS, FONT_FAMILY } from '../../utils/platformUtils'
 
 const { width, height } = Dimensions.get('window')
 
@@ -134,7 +158,6 @@ const UserMakeTransaction = ({ navigation, username }) => {
       const res = await axios.post(`${API_URL}/verify_transaction/`, data, {
         headers: { Accept: 'application/json' }
       })
-      console.log('OTP verify response:', res.data)
       if (res.data && (res.data.success || res.data.message?.toLowerCase().includes('success'))) {
         setSuccess(true)
       } else {
@@ -183,275 +206,366 @@ const UserMakeTransaction = ({ navigation, username }) => {
     if (!permission) return <View />
     if (!permission.granted) {
       return (
-        <View style={styles.container}>
-          <Text style={styles.errorText}>Camera permission is required</Text>
-          <TouchableOpacity style={styles.convertButton} onPress={requestPermission}>
-            <Text style={styles.convertButtonText}>Grant Permission</Text>
-          </TouchableOpacity>
+        <View style={layout.container}>
+          <Text style={components.errorText}>Camera permission is required</Text>
+          <CrossPlatformTouchable 
+            style={components.submitButton} 
+            onPress={requestPermission}
+          >
+            <Text style={components.submitButtonText}>Grant Permission</Text>
+          </CrossPlatformTouchable>
         </View>
       )
     }
     return (
-      <View style={styles.cameraContainer}>
-        <CameraView
-          ref={cameraRef}
-          style={styles.camera}
-          facing={facing}
+      <View style={[camera.cameraContainer, { zIndex: 999 }]}>
+        {/* Background Image */}
+        <Image
+          source={require('../../assets/background/bg1.png')}
+          style={[StyleSheet.absoluteFill, { opacity: 0.3 }]}
+          resizeMode="cover"
+          pointerEvents="none"
         />
-        <TouchableOpacity style={styles.captureButton} onPress={handleCaptureFace} disabled={submitting}>
-          <Text style={styles.captureButtonText}>{submitting ? 'Verifying...' : 'Capture & Verify'}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.closeCameraButton} onPress={() => setIsCameraActive(false)}>
-          <Text style={styles.closeCameraText}>Cancel</Text>
-        </TouchableOpacity>
+        <StatusBar style="light" backgroundColor="rgba(0,0,0,0.7)" translucent />
+        <SafeAreaView style={{ flex: 1, width: '100%' }}>
+          <View style={camera.cameraHeader}>
+            <Text style={camera.cameraTitle}>Face Verification</Text>
+          </View>
+          <View style={camera.cameraPreviewContainer}>
+            <CameraView
+              ref={cameraRef}
+              style={camera.cameraPreview}
+              facing={facing}
+            />
+          </View>
+          <View style={camera.cameraControls}>
+            <CrossPlatformTouchable 
+              style={camera.captureButton} 
+              onPress={handleCaptureFace} 
+              disabled={submitting}
+            >
+              <Text style={camera.captureButtonText}>
+                {submitting ? 'Verifying...' : 'Capture & Verify'}
+              </Text>
+            </CrossPlatformTouchable>
+            <CrossPlatformTouchable 
+              style={camera.closeCameraButton} 
+              onPress={() => setIsCameraActive(false)}
+            >
+              <Text style={camera.closeCameraText}>Cancel</Text>
+            </CrossPlatformTouchable>
+          </View>
+        </SafeAreaView>
       </View>
     )
   }
 
   return (
-    <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={layout.safeArea} edges={['top', 'left', 'right']}>
       <StatusBar style="light" backgroundColor="transparent" translucent />
       <Image
         source={require('../../assets/background/bg1.png')}
-        style={styles.backgroundImage}
+        style={components.backgroundImage}
         resizeMode="cover"
         pointerEvents="none"
       />
-      <View style={styles.gradient} pointerEvents="none" />
-      <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.headerContainer}>
-          <BlurView tint="light" intensity={100} style={StyleSheet.absoluteFill} />
-          <MaterialIcons name="send" size={48} color="#00abe9" style={{ marginBottom: 8 }} />
-          <Text style={styles.heading}>Send Money</Text>
+      <View style={components.gradient} pointerEvents="none" />
+      <ScrollView contentContainerStyle={layout.container}>
+        <View style={components.headerContainer}>
+          <CrossPlatformBlur 
+            intensity={100} 
+            tint="light" 
+            style={StyleSheet.absoluteFill}
+            fallbackColor="rgba(255, 255, 255, 0.15)" 
+          />
+          <MaterialIcons name="send" size={48} color={colors.primary} style={{ marginBottom: 8 }} />
+          <Text style={typography.heading}>Send Money</Text>
+          <Text style={transaction.stepIndicator}>Step {currentStep} of 7</Text>
         </View>
         {loading ? (
-          <ActivityIndicator color="#00abe9" size="large" style={{ marginTop: 32 }} />
+          <ActivityIndicator color={colors.primary} size="large" style={{ marginTop: 32 }} />
         ) : (
           <>
-            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+            {error ? <Text style={components.errorText}>{error}</Text> : null}
             {currentStep === 1 && (
-              <View style={styles.formCard}>
-                <Text style={styles.label}>Select Your Account</Text>
+              <View style={components.formCard}>
+                <CrossPlatformBlur 
+                  intensity={80} 
+                  tint="light" 
+                  style={StyleSheet.absoluteFill}
+                  fallbackColor="rgba(255, 255, 255, 0.1)" 
+                />
+                <Text style={typography.label}>Select Your Account</Text>
                 {accounts.map(acc => (
-                  <TouchableOpacity
+                  <CrossPlatformTouchable
                     key={acc.id}
                     style={[
-                      styles.optionButton,
-                      form.account_number == acc.id && styles.optionButtonSelected
+                      transaction.optionButton,
+                      form.account_number == acc.id && transaction.optionButtonSelected
                     ]}
                     onPress={() => handleChange('account_number', acc.id)}
                   >
-                    <Text style={{ color: form.account_number == acc.id ? '#fff' : '#00abe9' }}>
+                    <Text style={{ 
+                      color: form.account_number == acc.id ? colors.white : colors.primary,
+                      fontFamily: FONT_FAMILY.medium
+                    }}>
                       {acc.account_number} ({acc.account_type}) - ₹{acc.balance}
                     </Text>
-                  </TouchableOpacity>
+                  </CrossPlatformTouchable>
                 ))}
-                <TouchableOpacity
-                  style={styles.nextButton}
+                <CrossPlatformTouchable
+                  style={transaction.nextButton}
                   onPress={nextStep}
                   disabled={!form.account_number}
                 >
-                  <Text style={styles.nextButtonText}>Next</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.cancelButton, { marginTop: 12 }]}
+                  <Text style={transaction.nextButtonText}>Next</Text>
+                </CrossPlatformTouchable>
+                <CrossPlatformTouchable
+                  style={transaction.cancelButton}
                   onPress={handleCancel}
                 >
-                  <Text style={styles.cancelButtonText}>Cancel Transaction</Text>
-                </TouchableOpacity>
+                  <Text style={transaction.cancelButtonText}>Cancel Transaction</Text>
+                </CrossPlatformTouchable>
               </View>
             )}
             {currentStep === 2 && (
-              <View style={styles.formCard}>
-                <Text style={styles.label}>Receiver Account Number</Text>
+              <View style={components.formCard}>
+                <CrossPlatformBlur 
+                  intensity={80} 
+                  tint="light" 
+                  style={StyleSheet.absoluteFill}
+                  fallbackColor="rgba(255, 255, 255, 0.1)" 
+                />
+                <Text style={typography.label}>Receiver Account Number</Text>
                 <TextInput
-                  style={styles.input}
+                  style={components.input}
                   placeholder="Receiver Account Number"
+                  placeholderTextColor="#888"
                   keyboardType="numeric"
                   value={form.receiver_account_number}
                   onChangeText={v => handleChange('receiver_account_number', v)}
                 />
-                <Text style={styles.label}>Receiver Name</Text>
+                <Text style={typography.label}>Receiver Name</Text>
                 <TextInput
-                  style={styles.input}
+                  style={components.input}
                   placeholder="Receiver Name"
+                  placeholderTextColor="#888"
                   value={form.receiver_name}
                   onChangeText={v => handleChange('receiver_name', v)}
                 />
-                <View style={styles.stepNavRow}>
-                  <TouchableOpacity style={styles.prevButton} onPress={prevStep}>
-                    <Text style={styles.prevButtonText}>Back</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.nextButton}
+                <View style={transaction.stepNavRow}>
+                  <CrossPlatformTouchable style={transaction.prevButton} onPress={prevStep}>
+                    <Text style={transaction.prevButtonText}>Back</Text>
+                  </CrossPlatformTouchable>
+                  <CrossPlatformTouchable
+                    style={transaction.nextButton}
                     onPress={nextStep}
                     disabled={!form.receiver_account_number || !form.receiver_name}
                   >
-                    <Text style={styles.nextButtonText}>Next</Text>
-                  </TouchableOpacity>
+                    <Text style={transaction.nextButtonText}>Next</Text>
+                  </CrossPlatformTouchable>
                 </View>
-                <TouchableOpacity
-                  style={[styles.cancelButton, { marginTop: 12 }]}
+                <CrossPlatformTouchable
+                  style={transaction.cancelButton}
                   onPress={handleCancel}
                 >
-                  <Text style={styles.cancelButtonText}>Cancel Transaction</Text>
-                </TouchableOpacity>
+                  <Text style={transaction.cancelButtonText}>Cancel Transaction</Text>
+                </CrossPlatformTouchable>
               </View>
             )}
             {currentStep === 3 && (
-              <View style={styles.formCard}>
-                <Text style={styles.label}>Select Branch</Text>
+              <View style={components.formCard}>
+                <CrossPlatformBlur 
+                  intensity={80} 
+                  tint="light" 
+                  style={StyleSheet.absoluteFill}
+                  fallbackColor="rgba(255, 255, 255, 0.1)" 
+                />
+                <Text style={typography.label}>Select Branch</Text>
                 {branches.map(branch => (
-                  <TouchableOpacity
+                  <CrossPlatformTouchable
                     key={branch.id}
                     style={[
-                      styles.optionButton,
-                      form.branch_name == branch.id && styles.optionButtonSelected
+                      transaction.optionButton,
+                      form.branch_name == branch.id && transaction.optionButtonSelected
                     ]}
                     onPress={() => handleChange('branch_name', branch.id)}
                   >
-                    <Text style={{ color: form.branch_name == branch.id ? '#fff' : '#00abe9' }}>
+                    <Text style={{ 
+                      color: form.branch_name == branch.id ? colors.white : colors.primary,
+                      fontFamily: FONT_FAMILY.medium
+                    }}>
                       {branch.branch_name}
                     </Text>
-                  </TouchableOpacity>
+                  </CrossPlatformTouchable>
                 ))}
-                <View style={styles.stepNavRow}>
-                  <TouchableOpacity style={styles.prevButton} onPress={prevStep}>
-                    <Text style={styles.prevButtonText}>Back</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.nextButton}
+                <View style={transaction.stepNavRow}>
+                  <CrossPlatformTouchable style={transaction.prevButton} onPress={prevStep}>
+                    <Text style={transaction.prevButtonText}>Back</Text>
+                  </CrossPlatformTouchable>
+                  <CrossPlatformTouchable
+                    style={transaction.nextButton}
                     onPress={nextStep}
                     disabled={!form.branch_name}
                   >
-                    <Text style={styles.nextButtonText}>Next</Text>
-                  </TouchableOpacity>
+                    <Text style={transaction.nextButtonText}>Next</Text>
+                  </CrossPlatformTouchable>
                 </View>
-                <TouchableOpacity
-                  style={[styles.cancelButton, { marginTop: 12 }]}
+                <CrossPlatformTouchable
+                  style={transaction.cancelButton}
                   onPress={handleCancel}
                 >
-                  <Text style={styles.cancelButtonText}>Cancel Transaction</Text>
-                </TouchableOpacity>
+                  <Text style={transaction.cancelButtonText}>Cancel Transaction</Text>
+                </CrossPlatformTouchable>
               </View>
             )}
             {currentStep === 4 && (
-              <View style={styles.formCard}>
-                <Text style={styles.label}>Amount</Text>
+              <View style={components.formCard}>
+                <CrossPlatformBlur 
+                  intensity={80} 
+                  tint="light" 
+                  style={StyleSheet.absoluteFill}
+                  fallbackColor="rgba(255, 255, 255, 0.1)" 
+                />
+                <Text style={typography.label}>Amount</Text>
                 <TextInput
-                  style={styles.input}
+                  style={components.input}
                   placeholder="Amount"
+                  placeholderTextColor="#888"
                   keyboardType="numeric"
                   value={form.amount}
                   onChangeText={v => handleChange('amount', v)}
                 />
-                <View style={styles.stepNavRow}>
-                  <TouchableOpacity style={styles.prevButton} onPress={prevStep}>
-                    <Text style={styles.prevButtonText}>Back</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.nextButton}
+                <View style={transaction.stepNavRow}>
+                  <CrossPlatformTouchable style={transaction.prevButton} onPress={prevStep}>
+                    <Text style={transaction.prevButtonText}>Back</Text>
+                  </CrossPlatformTouchable>
+                  <CrossPlatformTouchable
+                    style={transaction.nextButton}
                     onPress={handleReview}
                     disabled={!form.amount}
                   >
-                    <Text style={styles.nextButtonText}>Next</Text>
-                  </TouchableOpacity>
+                    <Text style={transaction.nextButtonText}>Next</Text>
+                  </CrossPlatformTouchable>
                 </View>
-                <TouchableOpacity
-                  style={[styles.cancelButton, { marginTop: 12 }]}
+                <CrossPlatformTouchable
+                  style={transaction.cancelButton}
                   onPress={handleCancel}
                 >
-                  <Text style={styles.cancelButtonText}>Cancel Transaction</Text>
-                </TouchableOpacity>
+                  <Text style={transaction.cancelButtonText}>Cancel Transaction</Text>
+                </CrossPlatformTouchable>
               </View>
             )}
             {currentStep === 5 && (
-              <View style={styles.formCard}>
-                <Text style={styles.sectionTitle}>Review & Confirm</Text>
-                <Text style={styles.label}>Sender Account: <Text style={styles.value}>{reviewData?.sender_account}</Text></Text>
-                <Text style={styles.label}>Receiver Account: <Text style={styles.value}>{form.receiver_account_number}</Text></Text>
-                <Text style={styles.label}>Receiver Name: <Text style={styles.value}>{form.receiver_name}</Text></Text>
-                <Text style={styles.label}>Branch: <Text style={styles.value}>{reviewData?.branch}</Text></Text>
-                <Text style={styles.label}>Amount: <Text style={styles.value}>₹{form.amount}</Text></Text>
-                <View style={styles.stepNavRow}>
-                  <TouchableOpacity style={styles.prevButton} onPress={prevStep}>
-                    <Text style={styles.prevButtonText}>Back</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.nextButton}
+              <View style={components.formCard}>
+                <CrossPlatformBlur 
+                  intensity={80} 
+                  tint="light" 
+                  style={StyleSheet.absoluteFill}
+                  fallbackColor="rgba(255, 255, 255, 0.1)" 
+                />
+                <Text style={transaction.sectionTitle}>Review & Confirm</Text>
+                <Text style={typography.label}>Sender Account: <Text style={transaction.value}>{reviewData?.sender_account}</Text></Text>
+                <Text style={typography.label}>Receiver Account: <Text style={transaction.value}>{form.receiver_account_number}</Text></Text>
+                <Text style={typography.label}>Receiver Name: <Text style={transaction.value}>{form.receiver_name}</Text></Text>
+                <Text style={typography.label}>Branch: <Text style={transaction.value}>{reviewData?.branch}</Text></Text>
+                <Text style={typography.label}>Amount: <Text style={transaction.value}>₹{form.amount}</Text></Text>
+                <View style={transaction.stepNavRow}>
+                  <CrossPlatformTouchable style={transaction.prevButton} onPress={prevStep}>
+                    <Text style={transaction.prevButtonText}>Back</Text>
+                  </CrossPlatformTouchable>
+                  <CrossPlatformTouchable
+                    style={transaction.nextButton}
                     onPress={handleInitiateTransaction}
                     disabled={submitting}
                   >
-                    <Text style={styles.nextButtonText}>{submitting ? 'Processing...' : 'Confirm & Continue'}</Text>
-                  </TouchableOpacity>
+                    <Text style={transaction.nextButtonText}>
+                      {submitting ? 'Processing...' : 'Confirm & Continue'}
+                    </Text>
+                  </CrossPlatformTouchable>
                 </View>
-                <TouchableOpacity
-                  style={[styles.cancelButton, { marginTop: 12 }]}
+                <CrossPlatformTouchable
+                  style={transaction.cancelButton}
                   onPress={handleCancel}
                 >
-                  <Text style={styles.cancelButtonText}>Cancel Transaction</Text>
-                </TouchableOpacity>
+                  <Text style={transaction.cancelButtonText}>Cancel Transaction</Text>
+                </CrossPlatformTouchable>
               </View>
             )}
             {currentStep === 6 && (
-              <View style={styles.formCard}>
-                <Text style={styles.sectionTitle}>Face Verification</Text>
-                <Text style={styles.label}>Please verify your face to proceed.</Text>
-                <TouchableOpacity
-                  style={styles.nextButton}
+              <View style={components.formCard}>
+                <CrossPlatformBlur 
+                  intensity={80} 
+                  tint="light" 
+                  style={StyleSheet.absoluteFill}
+                  fallbackColor="rgba(255, 255, 255, 0.1)" 
+                />
+                <Text style={transaction.sectionTitle}>Face Verification</Text>
+                <Text style={typography.label}>Please verify your face to proceed.</Text>
+                <CrossPlatformTouchable
+                  style={transaction.nextButton}
                   onPress={handleFaceVerify}
                   disabled={submitting}
                 >
-                  <Text style={styles.nextButtonText}>Start Face Verification</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.cancelButton, { marginTop: 12 }]}
+                  <Text style={transaction.nextButtonText}>Start Face Verification</Text>
+                </CrossPlatformTouchable>
+                <CrossPlatformTouchable
+                  style={transaction.cancelButton}
                   onPress={handleCancel}
                 >
-                  <Text style={styles.cancelButtonText}>Cancel Transaction</Text>
-                </TouchableOpacity>
+                  <Text style={transaction.cancelButtonText}>Cancel Transaction</Text>
+                </CrossPlatformTouchable>
               </View>
             )}
             {currentStep === 7 && (
-              <View style={styles.formCard}>
-                <Text style={styles.sectionTitle}>OTP Verification</Text>
-                <Text style={styles.label}>Enter the OTP sent to your email.</Text>
+              <View style={components.formCard}>
+                <CrossPlatformBlur 
+                  intensity={80} 
+                  tint="light" 
+                  style={StyleSheet.absoluteFill}
+                  fallbackColor="rgba(255, 255, 255, 0.1)" 
+                />
+                <Text style={transaction.sectionTitle}>OTP Verification</Text>
+                <Text style={typography.label}>Enter the OTP sent to your email.</Text>
                 <TextInput
-                  style={styles.input}
+                  style={components.input}
                   placeholder="Enter OTP"
+                  placeholderTextColor="#888"
                   keyboardType="numeric"
                   value={otp}
                   onChangeText={setOtp}
                 />
-                <View style={styles.stepNavRow}>
-                  <TouchableOpacity style={styles.prevButton} onPress={prevStep}>
-                    <Text style={styles.prevButtonText}>Back</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.nextButton}
+                <View style={transaction.stepNavRow}>
+                  <CrossPlatformTouchable style={transaction.prevButton} onPress={prevStep}>
+                    <Text style={transaction.prevButtonText}>Back</Text>
+                  </CrossPlatformTouchable>
+                  <CrossPlatformTouchable
+                    style={transaction.nextButton}
                     onPress={handleOtpVerify}
                     disabled={otpSubmitting || !otp}
                   >
-                    <Text style={styles.nextButtonText}>{otpSubmitting ? 'Verifying...' : 'Verify & Complete'}</Text>
-                  </TouchableOpacity>
+                    <Text style={transaction.nextButtonText}>
+                      {otpSubmitting ? 'Verifying...' : 'Verify & Complete'}
+                    </Text>
+                  </CrossPlatformTouchable>
                 </View>
-                <TouchableOpacity
-                  style={[styles.cancelButton, { marginTop: 12 }]}
+                <CrossPlatformTouchable
+                  style={transaction.cancelButton}
                   onPress={handleCancel}
                 >
-                  <Text style={styles.cancelButtonText}>Cancel Transaction</Text>
-                </TouchableOpacity>
+                  <Text style={transaction.cancelButtonText}>Cancel Transaction</Text>
+                </CrossPlatformTouchable>
               </View>
             )}
             {success && (
               <Modal visible={success} transparent animationType="slide">
-                <View style={styles.modalOverlay}>
-                  <View style={styles.modalContainer}>
-                    <MaterialIcons name="check-circle" size={64} color="#00abe9" />
-                    <Text style={styles.modalTitle}>Transaction Successful!</Text>
-                    <TouchableOpacity style={styles.nextButton} onPress={handleDone}>
-                      <Text style={styles.nextButtonText}>OK</Text>
-                    </TouchableOpacity>
+                <View style={transaction.modalOverlay}>
+                  <View style={transaction.modalContainer}>
+                    <MaterialIcons name="check-circle" size={64} color={colors.primary} />
+                    <Text style={transaction.modalTitle}>Transaction Successful!</Text>
+                    <CrossPlatformTouchable style={transaction.nextButton} onPress={handleDone}>
+                      <Text style={transaction.nextButtonText}>OK</Text>
+                    </CrossPlatformTouchable>
                   </View>
                 </View>
               </Modal>
@@ -462,258 +576,5 @@ const UserMakeTransaction = ({ navigation, username }) => {
     </SafeAreaView>
   )
 }
-
-const styles = StyleSheet.create({
-  backgroundImage: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    width: undefined,
-    height: undefined,
-    zIndex: 0
-  },
-  gradient: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-    zIndex: 1
-  },
-  container: {
-    flexGrow: 1,
-    alignItems: 'center',
-    paddingVertical: 24,
-    paddingHorizontal: 10,
-    zIndex: 2,
-    minHeight: height,
-    paddingBottom: 90,
-  },
-  headerContainer: {
-    width: '100%',
-    maxWidth: 480,
-    alignItems: 'center',
-    marginTop: 24,
-    marginBottom: 24,
-    paddingTop: 24,
-    paddingBottom: 24,
-    paddingHorizontal: 12,
-    overflow: 'hidden',
-    position: 'relative',
-    borderRadius: 24,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-  },
-  heading: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#00abe9',
-    letterSpacing: 1.2,
-    textAlign: 'center',
-    marginBottom: 0,
-    marginTop: 0,
-    textShadowColor: 'rgba(0,0,0,0.15)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 6,
-  },
-  formCard: {
-    width: '100%',
-    maxWidth: 480,
-    marginBottom: 18,
-    padding: 20,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.13)',
-    overflow: 'hidden',
-    position: 'relative',
-    alignItems: 'center',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#00abe9',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.10,
-        shadowRadius: 12,
-      },
-      android: {
-        elevation: 3
-      }
-    })
-  },
-  label: {
-    color: '#222',
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 2,
-    marginTop: 4
-  },
-  input: {
-    width: '100%',
-    backgroundColor: 'rgba(255, 255, 255, 0.47)',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 110, 157, 0.42)',
-    color: 'rgb(0, 0, 0)',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginBottom: 12,
-    fontSize: 16,
-  },
-  optionButton: {
-    width: '100%',
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#00abe9',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    marginBottom: 8,
-    alignItems: 'center',
-  },
-  optionButtonSelected: {
-    backgroundColor: '#00abe9',
-    borderColor: '#00abe9',
-  },
-  nextButton: {
-    width: '48%',
-    backgroundColor: '#00abe9',
-    borderRadius: 16,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  nextButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 18,
-    letterSpacing: 1,
-  },
-  prevButton: {
-    width: '48%',
-    backgroundColor: '#e0e0e0',
-    borderRadius: 16,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  prevButtonText: {
-    color: '#00abe9',
-    fontWeight: 'bold',
-    fontSize: 18,
-    letterSpacing: 1,
-  },
-  stepNavRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-    gap: 8,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#00abe9',
-    marginBottom: 10,
-    textAlign: 'center'
-  },
-  value: {
-    color: '#00abe9',
-    fontWeight: 'bold',
-    fontSize: 16,
-    marginBottom: 2,
-  },
-  errorText: {
-    color: 'red',
-    fontSize: 16,
-    marginTop: 10,
-    textAlign: 'center'
-  },
-  cameraContainer: {
-    flex: 1,
-    backgroundColor: 'black',
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  camera: {
-    width: width * 0.9,
-    height: height * 0.6,
-    borderRadius: 20,
-    overflow: 'hidden',
-    marginBottom: 20
-  },
-  captureButton: {
-    backgroundColor: '#00abe9',
-    borderRadius: 16,
-    paddingVertical: 14,
-    paddingHorizontal: 32,
-    alignItems: 'center',
-    marginBottom: 10
-  },
-  captureButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 18,
-    letterSpacing: 1,
-  },
-  closeCameraButton: {
-    backgroundColor: '#e53935',
-    borderRadius: 16,
-    paddingVertical: 10,
-    paddingHorizontal: 24,
-    alignItems: 'center',
-  },
-  closeCameraText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContainer: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 30,
-    alignItems: 'center',
-    width: '80%',
-    maxWidth: 400,
-  },
-  modalTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginVertical: 10,
-    color: '#00abe9',
-    textAlign: 'center'
-  },
-  convertButton: {
-    backgroundColor: '#00abe9',
-    borderRadius: 16,
-    paddingVertical: 10,
-    paddingHorizontal: 24,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  convertButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-    letterSpacing: 1,
-  },
-  cancelButton: {
-    width: '100%',
-    backgroundColor: '#e53935',
-    borderRadius: 16,
-    paddingVertical: 12,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  cancelButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-    letterSpacing: 1,
-  },
-})
 
 export default UserMakeTransaction

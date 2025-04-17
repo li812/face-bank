@@ -355,26 +355,52 @@ export const components = {
 // Camera-related styles
 export const camera = {
   cameraContainer: {
-    flex: 1,
-    backgroundColor: colors.black,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.85)',
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 999, // Ensure camera appears above everything else
+  },
+  cameraHeader: {
+    width: '100%',
+    paddingVertical: 16,
+    alignItems: 'center',
+    marginTop: STATUS_BAR_HEIGHT,
+  },
+  cameraTitle: {
+    color: colors.white,
+    fontSize: 22,
+    fontWeight: 'bold',
+    letterSpacing: 1,
+    fontFamily: FONT_FAMILY.bold,
   },
   cameraPreviewContainer: {
     width: '90%',
-    maxWidth: 480,
-    height: 300,
-    borderRadius: 12,
+    height: height * 0.5,
+    marginHorizontal: '5%',
+    borderRadius: 16,
     overflow: 'hidden',
-    marginBottom: 16,
-    position: 'relative',
+    marginVertical: 20,
     backgroundColor: colors.black,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    ...createShadow(colors.primary, 0.4, 5, 15),
   },
   cameraPreview: {
     flex: 1,
+    backgroundColor: '#000',
+  },
+  cameraControls: {
+    paddingHorizontal: 20,
+    paddingBottom: IS_IOS ? 40 : 20, // Extra padding for iOS to account for home indicator
+    width: '100%',
   },
   cameraInstructions: {
-    color: colors.text,
+    color: colors.white,
     fontSize: 16,
     marginBottom: 16,
     textAlign: 'center',
@@ -383,9 +409,9 @@ export const camera = {
   captureButton: {
     backgroundColor: colors.primary,
     borderRadius: 16,
-    paddingVertical: 14,
+    paddingVertical: 16,
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 16,
     width: '100%',
     ...createShadow(colors.primary, 0.3, 5, 10),
   },
@@ -398,10 +424,10 @@ export const camera = {
   closeCameraButton: {
     backgroundColor: colors.secondary,
     borderRadius: 16,
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 24,
     alignItems: 'center',
-    marginTop: 10,
+    width: '100%',
     ...createShadow(colors.secondary, 0.3, 4, 8),
   },
   closeCameraText: {
@@ -409,28 +435,6 @@ export const camera = {
     fontWeight: 'bold',
     fontSize: 16,
     fontFamily: FONT_FAMILY.bold,
-  },
-  imagePreviewContainer: {
-    width: '100%',
-    alignItems: 'center',
-  },
-  imagePreview: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    marginBottom: 10,
-    borderWidth: 2,
-    borderColor: colors.white,
-  },
-  retakeButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-  },
-  retakeButtonText: {
-    color: colors.white,
-    fontFamily: FONT_FAMILY.medium,
   },
 };
 
@@ -892,6 +896,121 @@ export const profile = {
   }
 };
 
+// Transaction styles for UserMakeTransaction
+export const transaction = {
+  stepIndicator: {
+    color: colors.textLight,
+    fontSize: 16,
+    marginBottom: 16,
+    textAlign: 'center',
+    fontFamily: FONT_FAMILY.regular,
+  },
+  optionButton: {
+    width: '100%',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginBottom: 8,
+    alignItems: 'center',
+  },
+  optionButtonSelected: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  stepNavRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    gap: 8,
+  },
+  nextButton: {
+    width: '48%',
+    backgroundColor: colors.primary,
+    borderRadius: 16,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  nextButtonText: {
+    color: colors.white,
+    fontWeight: 'bold',
+    fontSize: 18,
+    letterSpacing: 1,
+    fontFamily: FONT_FAMILY.bold,
+  },
+  prevButton: {
+    width: '48%',
+    backgroundColor: '#e0e0e0',
+    borderRadius: 16,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  prevButtonText: {
+    color: colors.primary,
+    fontWeight: 'bold',
+    fontSize: 18,
+    letterSpacing: 1,
+    fontFamily: FONT_FAMILY.bold,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: colors.primary,
+    marginBottom: 10,
+    textAlign: 'center',
+    fontFamily: FONT_FAMILY.bold,
+  },
+  value: {
+    color: colors.primary,
+    fontWeight: 'bold',
+    fontSize: 16,
+    marginBottom: 2,
+    fontFamily: FONT_FAMILY.bold,
+  },
+  cancelButton: {
+    width: '100%',
+    backgroundColor: colors.secondary,
+    borderRadius: 16,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  cancelButtonText: {
+    color: colors.white,
+    fontWeight: 'bold',
+    fontSize: 16,
+    letterSpacing: 1,
+    fontFamily: FONT_FAMILY.bold,
+  },
+  // Success modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    backgroundColor: colors.white,
+    borderRadius: 16,
+    padding: 30,
+    alignItems: 'center',
+    width: '80%',
+    maxWidth: 400,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginVertical: 10,
+    color: colors.primary,
+    textAlign: 'center',
+    fontFamily: FONT_FAMILY.bold,
+  },
+};
+
 // Touchable component helper - to create a platform-specific touchable style
 export const getTouchableComponent = () => {
   if (!IS_IOS) {
@@ -914,7 +1033,8 @@ export default {
   loan,
   exchangeRate,
   complaints,
-  profile,        // Add the profile styles to default export
+  profile,
+  transaction,     // Add transaction styles to default export
   createShadow,
   PLATFORM,
   getTouchableComponent,
