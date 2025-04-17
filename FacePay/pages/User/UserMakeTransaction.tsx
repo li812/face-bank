@@ -552,7 +552,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(0, 110, 157, 0.42)',
-    color: '#fff',
+    color: 'rgb(0, 0, 0)',
     paddingHorizontal: 16,
     paddingVertical: 12,
     marginBottom: 12,
