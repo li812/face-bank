@@ -306,16 +306,8 @@ const Register = ({ navigation }: any) => {
                           value={formData.gender}
                         />
                       </ModalSelector>
-                      
-                      <TextInput
-                        style={styles.input}
-                        placeholder="Address"
-                        placeholderTextColor="rgba(255,255,255,0.6)"
-                        value={formData.address}
-                        onChangeText={(text) => handleChange('address', text)}
-                        returnKeyType="next"
-                      />
-                      
+
+
                       <TextInput
                         style={styles.input}
                         placeholder="Email"
@@ -352,6 +344,16 @@ const Register = ({ navigation }: any) => {
                   {/* Step 2: Location Details */}
                   {currentStep === 2 && (
                     <View style={styles.formContainer}>
+
+                      <TextInput
+                        style={styles.input}
+                        placeholder="Address"
+                        placeholderTextColor="rgba(255,255,255,0.6)"
+                        value={formData.address}
+                        onChangeText={(text) => handleChange('address', text)}
+                        returnKeyType="next"
+                      />
+
                       <TextInput
                         style={styles.input}
                         placeholder="City"

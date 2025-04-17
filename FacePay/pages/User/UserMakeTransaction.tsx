@@ -116,15 +116,54 @@ const UserMakeTransaction = ({ navigation, username }) => {
       const res = await axios.post(`${API_URL}/face_verification/`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       })
+      
+      // Log the verification response for debugging
+      console.log('Face verification response:', res.data);
+      
       if (res.data && res.data.success) {
         setFaceVerified(true)
         setIsCameraActive(false)
         nextStep()
       } else {
-        setError(res.data.message || 'Face verification failed')
+        // Handle verification failure
+        setIsCameraActive(false)
+        const errorMsg = res.data?.message || 'Face verification failed';
+        Alert.alert(
+          'Verification Failed',
+          errorMsg,
+          [
+            { 
+              text: 'Cancel Transaction', 
+              style: 'cancel',
+              onPress: () => handleCancel() 
+            },
+            { 
+              text: 'Try Again', 
+              onPress: () => setIsCameraActive(true) 
+            }
+          ]
+        )
+        setError(errorMsg)
       }
     } catch (err) {
-      setError('Face verification failed')
+      setIsCameraActive(false)
+      const errorMsg = 'Face verification failed. Please try again or cancel the transaction.';
+      Alert.alert(
+        'Verification Error',
+        errorMsg,
+        [
+          { 
+            text: 'Cancel Transaction', 
+            style: 'cancel',
+            onPress: () => handleCancel() 
+          },
+          { 
+            text: 'Try Again', 
+            onPress: () => setIsCameraActive(true) 
+          }
+        ]
+      )
+      setError(errorMsg)
     }
     setSubmitting(false)
   }
@@ -134,16 +173,42 @@ const UserMakeTransaction = ({ navigation, username }) => {
     setSubmitting(true)
     setError('')
     try {
+      // Create form data with proper string values for Android compatibility
       const data = new FormData()
-      data.append('receiver_account_number', form.receiver_account_number)
-      data.append('receiver_name', form.receiver_name)
-      data.append('account_number', form.account_number)
-      data.append('branch_name', form.branch_name)
-      data.append('amount', form.amount)
-      await axios.post(`${API_URL}/initiate_transaction/`, data)
+      data.append('receiver_account_number', String(form.receiver_account_number))
+      data.append('receiver_name', String(form.receiver_name))
+      data.append('account_number', String(form.account_number))
+      data.append('branch_name', String(form.branch_name))
+      data.append('amount', String(form.amount)
+      )
+      // Log the request for debugging
+      console.log('Sending data:', {
+        receiver_account_number: form.receiver_account_number,
+        receiver_name: form.receiver_name,
+        account_number: form.account_number,
+        branch_name: form.branch_name,
+        amount: form.amount
+      });
+
+      const res = await axios.post(`${API_URL}/initiate_transaction/`, data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Accept': 'application/json'
+        }
+      })
+      
+      // Log the response for debugging
+      console.log('Response:', res.data);
+      
       nextStep() // Go to face verification
     } catch (err) {
-      setError('Failed to initiate transaction')
+      console.error('Transaction error:', err.message);
+      if (err.response) {
+        console.error('Error response:', err.response.data);
+        setError(`Failed to initiate transaction: ${err.response.data.message || err.message}`);
+      } else {
+        setError('Failed to initiate transaction. Please check your connection.');
+      }
     }
     setSubmitting(false)
   }
@@ -153,18 +218,38 @@ const UserMakeTransaction = ({ navigation, username }) => {
     setOtpSubmitting(true)
     setError('')
     try {
+      // Create form data with proper string values for Android compatibility
       const data = new FormData()
-      data.append('otp', otp)
+      data.append('otp', String(otp)) // Convert to string explicitly for Android
+
+      // Log the request for debugging
+      console.log('Sending OTP data:', {
+        otp: otp
+      });
+
       const res = await axios.post(`${API_URL}/verify_transaction/`, data, {
-        headers: { Accept: 'application/json' }
+        headers: { 
+          'Content-Type': 'multipart/form-data',
+          'Accept': 'application/json' 
+        }
       })
+      
+      // Log the response for debugging
+      console.log('OTP Response:', res.data);
+      
       if (res.data && (res.data.success || res.data.message?.toLowerCase().includes('success'))) {
         setSuccess(true)
       } else {
         setError(res.data.message || 'Invalid OTP')
       }
     } catch (err) {
-      setError('Failed to verify OTP')
+      console.error('OTP verification error:', err.message);
+      if (err.response) {
+        console.error('Error response:', err.response.data);
+        setError(`Failed to verify OTP: ${err.response.data.message || err.message}`);
+      } else {
+        setError('Failed to verify OTP. Please check your connection.');
+      }
     }
     setOtpSubmitting(false)
   }

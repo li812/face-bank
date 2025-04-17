@@ -59,13 +59,33 @@ const AddAccount = ({ navigation, username }) => {
     }
     setSubmitting(true)
     try {
+      // Create form data with proper string values for Android compatibility
       const data = new FormData()
-      data.append('account_number', form.account_number)
-      data.append('branch_name', form.branch_name)
-      data.append('username', username)
-      data.append('account_type', form.account_type)
-      data.append('balance', form.balance)
-      const res = await axios.post(`${API_URL}/addAccount`, data)
+      data.append('account_number', String(form.account_number))
+      data.append('branch_name', String(form.branch_name))
+      data.append('username', String(username))
+      data.append('account_type', String(form.account_type))
+      data.append('balance', String(form.balance))
+      
+      // Log the request for debugging
+      console.log('Sending account data:', {
+        account_number: form.account_number,
+        branch_name: form.branch_name,
+        username: username,
+        account_type: form.account_type,
+        balance: form.balance
+      });
+
+      const res = await axios.post(`${API_URL}/addAccount`, data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Accept': 'application/json'
+        }
+      })
+      
+      // Log success response
+      console.log('Add account response:', res.data);
+      
       setSubmitting(false)
       // Clear form fields after success
       setForm({
@@ -82,6 +102,13 @@ const AddAccount = ({ navigation, username }) => {
         navigation.navigate('Dashboard')
       }
     } catch (err) {
+      console.error('Add account error:', err.message);
+      if (err.response) {
+        console.error('Error response:', err.response.data);
+        setError(`Failed to add account: ${err.response.data.message || err.message}`);
+      } else {
+        setError('Failed to add account. Please check your connection.');
+      }
       setSubmitting(false)
       Alert.alert('Error', 'Failed to add account')
     }
