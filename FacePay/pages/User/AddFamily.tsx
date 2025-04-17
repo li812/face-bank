@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react'
+import React, { useRef, useState, useEffect, useCallback } from 'react'
 import {
   View, 
   Text, 
@@ -20,6 +20,7 @@ import { MaterialIcons } from '@expo/vector-icons'
 import { CameraView, useCameraPermissions, CameraType } from 'expo-camera'
 import axios from 'axios'
 import { API_URL } from '../../config'
+import { useFocusEffect } from '@react-navigation/native'
 
 // Import the unified stylesheet
 import styleSheet, { colors, typography, layout, components, camera, PLATFORM } from '../../appStyleSheet'
@@ -38,17 +39,6 @@ const AddFamily = ({ navigation, route }) => {
   // 3. Log primaryUsername to verify it's correct
   console.log('primaryUsername:', primaryUsername);
   
-  // 4. Add validation early
-  useEffect(() => {
-    if (!primaryUsername) {
-      Alert.alert(
-        "Error", 
-        "Missing primary account username. Please try again.",
-        [{ text: "OK", onPress: () => navigation.goBack() }]
-      );
-    }
-  }, [primaryUsername]);
-
   // Step state
   const [currentStep, setCurrentStep] = useState(1)
   const [form, setForm] = useState({
@@ -75,6 +65,47 @@ const AddFamily = ({ navigation, route }) => {
 
   // Form change handler
   const handleChange = (key, value) => setForm({ ...form, [key]: value })
+
+  // Define a function to reset the form
+  const resetForm = () => {
+    setCurrentStep(1)
+    setForm({
+      username: '',
+      name: '',
+      email: '',
+      phone: '',
+      relationship: ''
+    })
+    setImage(null)
+    setError('')
+    setShowError(false)
+    setSubmitting(false)
+    setIsCameraActive(false)
+  }
+  
+  // Use useFocusEffect to reset when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      console.log("AddFamily screen in focus - resetting form");
+      resetForm();
+      
+      // Optional: Return a cleanup function if needed
+      return () => {
+        // Any cleanup code if necessary
+      };
+    }, []) // Empty dependency array means this runs every time the screen is focused
+  );
+
+  // 4. Add validation early - keep this after useFocusEffect to ensure it runs after form reset
+  useEffect(() => {
+    if (!primaryUsername) {
+      Alert.alert(
+        "Error", 
+        "Missing primary account username. Please try again.",
+        [{ text: "OK", onPress: () => navigation.goBack() }]
+      );
+    }
+  }, [primaryUsername]);
 
   // Step 1: Validate and go to face capture
   const handleNext = () => {

@@ -107,8 +107,8 @@ const Register = ({ navigation }: any) => {
   const goToNextStep = () => {
     // Step 1: Personal details validation
     if (currentStep === 1) {
-      const { username, first_name, last_name, gender, address, email, phone } = formData
-      if (!username || !first_name || !last_name || !gender || !address || !email || !phone) {
+      const { username, first_name, last_name, gender, email, phone } = formData
+      if (!username || !first_name || !last_name || !gender || !email || !phone) {
         setErrorMessage('Please fill all personal details')
         setShowError(true)
         return
@@ -128,8 +128,8 @@ const Register = ({ navigation }: any) => {
     }
     // Step 2: Location details validation
     if (currentStep === 2) {
-      const { city, state, country } = formData
-      if (!city || !state || !country) {
+      const { address, city, state, country } = formData
+      if (!address ||!city || !state || !country) {
         setErrorMessage('Please fill all location details')
         setShowError(true)
         return

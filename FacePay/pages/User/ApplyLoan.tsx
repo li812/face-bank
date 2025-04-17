@@ -4,6 +4,8 @@ import axios from 'axios'
 import { API_URL } from '../../config'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { StatusBar } from 'expo-status-bar'
+import { useFocusEffect } from '@react-navigation/native'
+import { useCallback } from 'react'
 
 // Import unified styling
 import styleSheet, { colors, typography, layout, components, loan } from '../../appStyleSheet'
@@ -24,24 +26,42 @@ const ApplyLoan = ({ navigation, username }) => {
     username: username || ''
   })
 
-  useEffect(() => {
-    // Fetch accounts and branches for dropdowns
-    const fetchData = async () => {
-      try {
-        const [accRes, branchRes] = await Promise.all([
-          axios.get(`${API_URL}/userAccount`, { headers: { Accept: 'application/json' } }),
-          axios.get(`${API_URL}/branches`, { headers: { Accept: 'application/json' } })
-        ])
-        setAccounts(accRes.data.user_account || [])
-        setBranches(branchRes.data.branches || [])
-        setError('')
-      } catch (err) {
-        setError('Failed to load accounts or branches')
-      }
-      setLoading(false)
+  const fetchData = async () => {
+    setLoading(true)
+    try {
+      const [accRes, branchRes] = await Promise.all([
+        axios.get(`${API_URL}/userAccount`, { headers: { Accept: 'application/json' } }),
+        axios.get(`${API_URL}/branches`, { headers: { Accept: 'application/json' } })
+      ])
+      setAccounts(accRes.data.user_account || [])
+      setBranches(branchRes.data.branches || [])
+      setError('')
+    } catch (err) {
+      console.error("Error fetching data:", err);
+      setError('Failed to load accounts or branches')
     }
-    fetchData()
-  }, [])
+    setLoading(false)
+  }
+
+  // Use useFocusEffect to refresh data when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      console.log("ApplyLoan screen in focus - refreshing data");
+      fetchData();
+      
+      // Reset form
+      setForm({
+        account_number: '',
+        loan_amount: '',
+        branch_name: '',
+        username: username || ''
+      });
+      
+      return () => {
+        // Any cleanup code if necessary
+      };
+    }, [username]) // Include username in dependency array
+  );
 
   const handleChange = (key, value) => {
     setForm({ ...form, [key]: value })
@@ -52,14 +72,36 @@ const ApplyLoan = ({ navigation, username }) => {
       Alert.alert('Error', 'Please fill all fields')
       return
     }
+    
     setSubmitting(true)
+    setError('')
+    
     try {
+      // Create form data with proper string values for Android compatibility
       const data = new FormData()
-      data.append('account_number', form.account_number)
-      data.append('loan_amount', form.loan_amount)
-      data.append('branch_name', form.branch_name)
-      data.append('username', username)
-      const res = await axios.post(`${API_URL}/applyLoan`, data)
+      data.append('account_number', String(form.account_number))
+      data.append('loan_amount', String(form.loan_amount))
+      data.append('branch_name', String(form.branch_name))
+      data.append('username', String(username))
+      
+      // Log the request for debugging
+      console.log('Sending loan data:', {
+        account_number: form.account_number,
+        loan_amount: form.loan_amount,
+        branch_name: form.branch_name,
+        username: username
+      });
+      
+      const res = await axios.post(`${API_URL}/applyLoan`, data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Accept': 'application/json'
+        }
+      })
+      
+      // Log the response for debugging
+      console.log('Loan application response:', res.data);
+      
       setSubmitting(false)
       setForm({
         account_number: '',
@@ -67,6 +109,7 @@ const ApplyLoan = ({ navigation, username }) => {
         branch_name: '',
         username: username || ''
       })
+      
       if (res.data && res.data.message) {
         Alert.alert('Success', res.data.message)
         navigation.navigate('Dashboard')
@@ -75,6 +118,14 @@ const ApplyLoan = ({ navigation, username }) => {
         navigation.navigate('Dashboard')
       }
     } catch (err) {
+      console.error('Loan application error:', err.message);
+      if (err.response) {
+        console.error('Error response:', err.response.data);
+        setError(`Failed to apply for loan: ${err.response.data.message || err.message}`);
+      } else {
+        setError('Failed to apply for loan. Please check your connection.');
+      }
+      
       setSubmitting(false)
       Alert.alert('Error', 'Failed to apply for loan')
     }

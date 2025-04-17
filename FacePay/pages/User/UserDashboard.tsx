@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { 
   View, 
   Text, 
@@ -16,7 +16,7 @@ import { API_URL } from '../../config'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { StatusBar } from 'expo-status-bar'
 import { BlurView } from 'expo-blur'
-import { useNavigation } from '@react-navigation/native'
+import { useNavigation, useFocusEffect } from '@react-navigation/native'
 
 // Import the unified stylesheet
 import styleSheet, { colors, typography, layout, components, dashboard, PLATFORM } from '../../appStyleSheet'
@@ -55,16 +55,26 @@ const UserDashboard = ({ username }) => {
       setAccounts(response.data.user_account || [])
       setError('')
     } catch (err) {
+      console.error("Error fetching accounts:", err);
       setError('Failed to load account data')
     }
     setLoading(false)
     setRefreshing(false)
   }
 
-  useEffect(() => {
-    fetchUserDetails()
-    fetchAccounts()
-  }, [])
+  // This will run both on initial mount and whenever the screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      console.log("Dashboard in focus - refreshing data");
+      fetchUserDetails();
+      fetchAccounts();
+      
+      // Optional: Return a cleanup function if needed
+      return () => {
+        // Any cleanup code if necessary
+      };
+    }, []) // Empty dependency array means this runs every time the screen is focused
+  );
 
   const totalBalance = accounts.reduce((sum, acc) => sum + (Number(acc.balance) || 0), 0)
 
