@@ -148,7 +148,7 @@ const UserDashboard = ({ username }) => {
         </View>
 
         <View style={styles.cardsRow}>
-          <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('AddFamily')}>
+          <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('AddFamily', { username })}>
           <BlurView tint="light" intensity={100} style={StyleSheet.absoluteFill} />
           <MaterialIcons name="group-add" size={36} color="#00abe9" style={styles.cardIcon} />
             <Text style={styles.cardText}>Add Family</Text>

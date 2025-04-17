@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react'
+import React, { useRef, useState, useEffect } from 'react'
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Dimensions, Platform, Image, Alert, Modal, KeyboardAvoidingView
 } from 'react-native'
@@ -13,7 +13,26 @@ import { API_URL } from '../../config'
 const { width, height } = Dimensions.get('window')
 
 const AddFamily = ({ navigation, route }) => {
-  const primaryUsername = route?.params?.username
+  // 1. Add debugging to see what's being passed
+  console.log('Route params:', route?.params);
+  
+  // 2. Get username from route params or fallback to navigation state
+  const primaryUsername = route?.params?.username || 
+                         (navigation.getState()?.routes?.find(r => r.name === 'AddFamily')?.params?.username);
+  
+  // 3. Log primaryUsername to verify it's correct
+  console.log('primaryUsername:', primaryUsername);
+  
+  // 4. Add validation early
+  useEffect(() => {
+    if (!primaryUsername) {
+      Alert.alert(
+        "Error", 
+        "Missing primary account username. Please try again.",
+        [{ text: "OK", onPress: () => navigation.goBack() }]
+      );
+    }
+  }, [primaryUsername]);
 
   // Step state
   const [currentStep, setCurrentStep] = useState(1)
@@ -83,6 +102,12 @@ const AddFamily = ({ navigation, route }) => {
 
   // Submit handler
   const handleSubmit = async () => {
+    if (!primaryUsername) {
+      setError('Missing primary account username')
+      setShowError(true)
+      return
+    }
+    
     if (!image) {
       setError('Please capture a face photo')
       setShowError(true)
@@ -105,24 +130,55 @@ const AddFamily = ({ navigation, route }) => {
       })
 
       console.log('POSTing to:', `${API_URL}/api/mobile_register_family/`)
+      console.log('Form data:', JSON.stringify({
+        username: form.username,
+        account_username: primaryUsername,
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        relationship: form.relationship,
+        image: image.uri.substring(0, 30) + '...' // Just log part of the URI to keep logs manageable
+      }))
 
-      const res = await axios.post(`${API_URL}/api/mobile_register_family/`, data, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          Accept: 'application/json'
+      try {
+        const res = await axios.post(`${API_URL}/api/mobile_register_family/`, data, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Accept: 'application/json'
+          }
+        })
+        
+        console.log('Response status:', res.status)
+        console.log('Response data:', JSON.stringify(res.data))
+
+        if (res.data && res.data.message?.toLowerCase().includes('success')) {
+          Alert.alert('Success', 'Family member registered successfully!', [
+            { text: 'OK', onPress: () => navigation.navigate('Dashboard', { username: primaryUsername }) }
+          ])
+        } else {
+          setError(res.data.message || 'Registration failed')
+          setShowError(true)
         }
-      })
-
-      if (res.data && res.data.message?.toLowerCase().includes('success')) {
-        Alert.alert('Success', 'Family member registered successfully!', [
-          { text: 'OK', onPress: () => navigation.navigate('Dashboard', { username: primaryUsername }) }
-        ])
-      } else {
-        setError(res.data.message || 'Registration failed')
-        setShowError(true)
+      } catch (error) {
+        console.error('Axios error:', error.message)
+        if (error.response) {
+          // The request was made and the server responded with a status code
+          // that falls out of the range of 2xx
+          console.error('Error response data:', JSON.stringify(error.response.data))
+          console.error('Error response status:', error.response.status)
+          console.error('Error response headers:', JSON.stringify(error.response.headers))
+        } else if (error.request) {
+          // The request was made but no response was received
+          console.error('Error request:', error.request)
+        } else {
+          // Something happened in setting up the request that triggered an Error
+          console.error('Error config:', error.config)
+        }
+        throw error; // rethrow for the outer catch
       }
     } catch (err) {
-      setError('Failed to register family member')
+      console.error('Outer error:', err.message)
+      setError(`Failed to register family member: ${err.message}`)
       setShowError(true)
     }
     setSubmitting(false)

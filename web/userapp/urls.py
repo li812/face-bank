@@ -23,4 +23,6 @@ urlpatterns = [
     path('check_username/', views.check_username, name='check_username'),
     path('branches', views.get_branches, name='branches'),
     path('api/mobile_register_family/', views.mobile_register_family_member, name='mobile_register_family'),
+    path('api/mobile_register_family', views.mobile_register_family_member, name='mobile_register_family'),
+    path('api/mobile_register_family//', views.mobile_register_family_member, name='mobile_register_family'),
 ]

@@ -23,8 +23,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('admin_page/', include('adminapp.urls')),
     path('branch_page/', include('branchapp.urls')),
-    path('', include('userapp.urls')),
-
+    path('', include('userapp.urls')),  # Make sure it's included at the root
 ]
 
 if settings.DEBUG:
