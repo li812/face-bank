@@ -576,6 +576,66 @@ export const account = {
   },
 };
 
+// Transaction-related styles
+export const transactions = {
+  transactionCard: {
+    width: '100%',
+    maxWidth: 480,
+    marginBottom: 18,
+    padding: 20,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.13)',
+    overflow: 'hidden',
+    position: 'relative',
+    alignItems: 'flex-start',
+    ...createShadow(colors.primary, 0.1, 3, 12),
+  },
+  txnLabel: {
+    color: colors.text,
+    fontSize: 16,
+    marginBottom: 2,
+    fontWeight: '600',
+    fontFamily: FONT_FAMILY.medium,
+  },
+  txnValue: {
+    color: colors.primary,
+    fontWeight: 'bold',
+    fontFamily: FONT_FAMILY.bold,
+  },
+  txnAmount: {
+    color: colors.primary,
+    fontWeight: 'bold',
+    fontSize: 18,
+    fontFamily: FONT_FAMILY.bold,
+  },
+  refreshButton: {
+    marginLeft: 10,
+    padding: 6,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0,171,233,0.08)',
+    alignSelf: 'flex-start'
+  },
+  filterRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 16,
+    gap: 8,
+  },
+  filterButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    marginHorizontal: 4,
+  },
+  filterButtonActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+};
+
 // Touchable component helper - to create a platform-specific touchable style
 export const getTouchableComponent = () => {
   if (!IS_IOS) {
@@ -594,6 +654,7 @@ export default {
   dashboard,
   filters,
   account,
+  transactions,
   createShadow,
   PLATFORM,
   getTouchableComponent,

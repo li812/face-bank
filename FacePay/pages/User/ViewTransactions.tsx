@@ -1,18 +1,21 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Dimensions, Platform, Image } from 'react-native'
-import { BlurView } from 'expo-blur'
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Image } from 'react-native'
 import axios from 'axios'
 import { API_URL } from '../../config'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { StatusBar } from 'expo-status-bar'
 import { MaterialIcons } from '@expo/vector-icons'
 
-const { width, height } = Dimensions.get('window')
+// Import unified styling
+import styleSheet, { colors, typography, layout, components, transactions } from '../../appStyleSheet'
+import CrossPlatformBlur from '../../components/CrossPlatformBlur'
+import CrossPlatformTouchable from '../../components/CrossPlatformTouchable'
+import { IS_IOS, FONT_FAMILY } from '../../utils/platformUtils'
 
 const FILTERS = ['All', 'Verified', 'Pending']
 
 const ViewTransactions = ({ navigation, username }) => {
-  const [transactions, setTransactions] = useState([])
+  const [transactionsData, setTransactions] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [filter, setFilter] = useState('All')
@@ -45,63 +48,112 @@ const ViewTransactions = ({ navigation, username }) => {
   // Filtering logic
   const filteredTransactions =
     filter === 'All'
-      ? transactions
-      : transactions.filter(txn =>
+      ? transactionsData
+      : transactionsData.filter(txn =>
           filter === 'Verified'
             ? txn.is_verified
             : !txn.is_verified
         )
 
   return (
-    <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={layout.safeArea} edges={['top', 'left', 'right']}>
       <StatusBar style="light" backgroundColor="transparent" translucent />
       {/* Background Image */}
       <Image
         source={require('../../assets/background/bg1.png')}
-        style={styles.backgroundImage}
+        style={components.backgroundImage}
         resizeMode="cover"
         pointerEvents="none"
       />
       {/* Overlay for glass effect */}
-      <View style={styles.gradient} pointerEvents="none" />
-      <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.headerContainer}>
-          <BlurView tint="light" intensity={100} style={StyleSheet.absoluteFill} />
-          <Text style={styles.heading}>Transaction History</Text>
-          <TouchableOpacity onPress={handleRefresh} style={styles.refreshButton} disabled={refreshing}>
-            <MaterialIcons name="refresh" size={22} color={refreshing ? "#aaa" : "#00abe9"} />
-          </TouchableOpacity>
+      <View style={components.gradient} pointerEvents="none" />
+      <ScrollView contentContainerStyle={layout.container}>
+        <View style={components.headerContainer}>
+          <CrossPlatformBlur 
+            intensity={100} 
+            tint="light" 
+            style={StyleSheet.absoluteFill}
+            fallbackColor="rgba(255, 255, 255, 0.15)"
+          />
+          <View style={{ width: '100%', alignItems: 'center' }}>
+            <Text style={[typography.heading, { textAlign: 'center' }]}>Transaction History</Text>
+          </View>
+
+          <CrossPlatformTouchable 
+            onPress={handleRefresh} 
+            style={[
+              transactions.refreshButton, 
+              { position: 'bottom', bottom: -10, alignSelf: 'center' }
+            ]} 
+            disabled={refreshing}
+          >
+            <MaterialIcons 
+              name="refresh" 
+              size={22} 
+              color={refreshing ? "#aaa" : colors.primary} 
+            />
+          </CrossPlatformTouchable>
         </View>
+        
         {/* Filter Buttons */}
-        <View style={styles.filterRow}>
+        <View style={transactions.filterRow}>
           {FILTERS.map(f => (
-            <TouchableOpacity
+            <CrossPlatformTouchable
               key={f}
               style={[
-                styles.filterButton,
-                filter === f && styles.filterButtonActive
+                transactions.filterButton,
+                filter === f && transactions.filterButtonActive
               ]}
               onPress={() => setFilter(f)}
             >
-              <Text style={{ color: filter === f ? '#fff' : '#00abe9', fontWeight: 'bold' }}>{f}</Text>
-            </TouchableOpacity>
+              <Text style={{ 
+                color: filter === f ? colors.white : colors.primary, 
+                fontWeight: 'bold',
+                fontFamily: FONT_FAMILY.bold
+              }}>
+                {f}
+              </Text>
+            </CrossPlatformTouchable>
           ))}
         </View>
+        
         {loading ? (
-          <ActivityIndicator color="#00abe9" size="large" style={{ marginTop: 32 }} />
+          <ActivityIndicator color={colors.primary} size="large" style={{ marginTop: 32 }} />
         ) : error ? (
-          <Text style={[styles.errorText, { marginTop: 32 }]}>{error}</Text>
+          <Text style={[components.errorText, { marginTop: 32 }]}>{error}</Text>
         ) : filteredTransactions.length === 0 ? (
-          <Text style={[styles.errorText, { marginTop: 32 }]}>No transactions found.</Text>
+          <Text style={[components.errorText, { marginTop: 32 }]}>No transactions found.</Text>
         ) : (
           filteredTransactions.map((txn, idx) => (
-            <View style={styles.transactionCard} key={idx}>
-              <BlurView tint="light" intensity={80} style={StyleSheet.absoluteFill} />
-              <Text style={styles.txnLabel}>To: <Text style={styles.txnValue}>{txn.receiver_name}</Text></Text>
-              <Text style={styles.txnLabel}>Account: <Text style={styles.txnValue}>{txn.receiver_account_number}</Text></Text>
-              <Text style={styles.txnLabel}>Amount: <Text style={styles.txnAmount}>₹ {Number(txn.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</Text></Text>
-              <Text style={styles.txnLabel}>Date: <Text style={styles.txnValue}>{txn.date}</Text></Text>
-              <Text style={styles.txnLabel}>Status: <Text style={[styles.txnValue, { color: txn.is_verified ? '#00abe9' : '#e91e63' }]}>{txn.is_verified ? 'Verified' : 'Pending'}</Text></Text>
+            <View style={transactions.transactionCard} key={idx}>
+              <CrossPlatformBlur 
+                intensity={80} 
+                tint="light" 
+                style={StyleSheet.absoluteFill}
+                fallbackColor="rgba(255, 255, 255, 0.1)"
+              />
+              <Text style={transactions.txnLabel}>
+                To: <Text style={transactions.txnValue}>{txn.receiver_name}</Text>
+              </Text>
+              <Text style={transactions.txnLabel}>
+                Account: <Text style={transactions.txnValue}>{txn.receiver_account_number}</Text>
+              </Text>
+              <Text style={transactions.txnLabel}>
+                Amount: <Text style={transactions.txnAmount}>
+                  ₹ {Number(txn.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                </Text>
+              </Text>
+              <Text style={transactions.txnLabel}>
+                Date: <Text style={transactions.txnValue}>{txn.date}</Text>
+              </Text>
+              <Text style={transactions.txnLabel}>
+                Status: <Text style={[
+                  transactions.txnValue, 
+                  { color: txn.is_verified ? colors.primary : colors.secondary }
+                ]}>
+                  {txn.is_verified ? 'Verified' : 'Pending'}
+                </Text>
+              </Text>
             </View>
           ))
         )}
@@ -109,132 +161,5 @@ const ViewTransactions = ({ navigation, username }) => {
     </SafeAreaView>
   )
 }
-
-const styles = StyleSheet.create({
-  backgroundImage: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    width: undefined,
-    height: undefined,
-    zIndex: 0
-  },
-  gradient: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-    zIndex: 1
-  },
-  container: {
-    flexGrow: 1,
-    alignItems: 'center',
-    paddingVertical: 24,
-    paddingHorizontal: 10,
-    zIndex: 2,
-    minHeight: height,
-    paddingBottom: 90, // for tab bar
-  },
-  headerContainer: {
-    width: '100%',
-    maxWidth: 480,
-    alignItems: 'center',
-    marginTop: 24,
-    marginBottom: 24,
-    paddingTop: 24,
-    paddingBottom: 24,
-    paddingHorizontal: 12,
-    overflow: 'hidden',
-    position: 'relative',
-    borderRadius: 24,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    flexDirection: 'row',
-    justifyContent: 'space-between'
-  },
-  heading: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#00abe9',
-    letterSpacing: 1.2,
-    textAlign: 'center',
-    marginBottom: 0,
-    marginTop: 0,
-    textShadowColor: 'rgba(0,0,0,0.15)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 6,
-    flex: 1
-  },
-  refreshButton: {
-    marginLeft: 10,
-    padding: 6,
-    borderRadius: 12,
-    backgroundColor: 'rgba(0,171,233,0.08)',
-    alignSelf: 'flex-start'
-  },
-  filterRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 16,
-    gap: 8,
-  },
-  filterButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 16,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#00abe9',
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    marginHorizontal: 4,
-  },
-  filterButtonActive: {
-    backgroundColor: '#00abe9',
-    borderColor: '#00abe9',
-  },
-  transactionCard: {
-    width: '100%',
-    maxWidth: 480,
-    marginBottom: 18,
-    padding: 20,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.13)',
-    overflow: 'hidden',
-    position: 'relative',
-    alignItems: 'flex-start',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#00abe9',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.10,
-        shadowRadius: 12,
-      },
-      android: {
-        elevation: 3
-      }
-    })
-  },
-  txnLabel: {
-    color: '#222',
-    fontSize: 16,
-    marginBottom: 2,
-    fontWeight: '600'
-  },
-  txnValue: {
-    color: '#00abe9',
-    fontWeight: 'bold'
-  },
-  txnAmount: {
-    color: '#00abe9',
-    fontWeight: 'bold',
-    fontSize: 18,
-  },
-  errorText: {
-    color: 'red',
-    fontSize: 16,
-    textAlign: 'center'
-  }
-})
 
 export default ViewTransactions
