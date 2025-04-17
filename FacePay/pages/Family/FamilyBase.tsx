@@ -1,281 +1,137 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Modal,
-  Alert,
-  ActivityIndicator
-} from 'react-native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import FamilyDashboard from './FamilyDashboard';
-import FamilyMakeTransaction from './FamilyMakeTransaction';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React from 'react'
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
+import { createNativeStackNavigator } from '@react-navigation/native-stack'
+import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons'
+import { StyleSheet, View, Image } from 'react-native'
 
-const Tab = createBottomTabNavigator();
+// Import components from the app
+import FamilyDashboard from './FamilyDashboard'
+import FamilyMakeTransaction from './FamilyMakeTransaction'
+import UserProfile from './FamilyProfile'
+import ExchangeRate from './ExchangeRate'
 
-const FamilyBase = ({ navigation }: any) => {
-  const [menuVisible, setMenuVisible] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [username, setUsername] = useState('');
 
-  // Get username when component mounts
-  useEffect(() => {
-    const getUsername = async () => {
-      try {
-        const storedUsername = await AsyncStorage.getItem('username');
-        if (storedUsername) {
-          setUsername(storedUsername);
+// Import the unified stylesheet and components
+import styleSheet, { colors, typography, layout, components, PLATFORM } from '../../appStyleSheet'
+import CrossPlatformBlur from '../../components/CrossPlatformBlur'
+import CrossPlatformTouchable from '../../components/CrossPlatformTouchable'
+import { IS_IOS, FONT_FAMILY } from '../../utils/platformUtils'
+
+const Stack = createNativeStackNavigator()
+const Tab = createBottomTabNavigator()
+
+const TabScreens = ({ username, first_name, last_name, navigation }) => (
+  <Tab.Navigator
+    initialRouteName="Dashboard"
+    screenOptions={({ route }) => ({
+      headerShown: false,
+      tabBarActiveTintColor: colors.primary,
+      tabBarInactiveTintColor: 'rgba(75, 75, 75, 0.57)',
+      tabBarStyle: { 
+        backgroundColor: 'transparent', 
+        position: 'absolute', 
+        borderTopWidth: 0,
+        elevation: 0,
+        shadowOpacity: 0,
+        height: 75,
+        paddingBottom: 1,
+      },
+      tabBarBackground: () => (
+        <CrossPlatformBlur 
+          tint="light" 
+          intensity={80} 
+          style={StyleSheet.absoluteFill}
+          fallbackColor="rgba(255, 255, 255, 0.8)" 
+        />
+      ),
+      tabBarIcon: ({ color, focused }) => {
+        const size = 32
+        if (route.name === 'Dashboard') {
+          return <MaterialIcons name="dashboard" size={size} color={color} />
         }
-      } catch (error) {
-        console.error('Error fetching username:', error);
-      }
-    };
+        if (route.name === 'SendMoney') {
+          return <MaterialCommunityIcons name="bank-transfer" size={size} color={color} />
+        }
+        if (route.name === 'Profile') {
+          return <MaterialIcons name="person" size={size} color={color} />
+        }
+        return null
+      },
+      tabBarLabelStyle: {
+        fontFamily: FONT_FAMILY.medium,
+        fontSize: 15,
+        height: 35,
+      },
+      // Only allow tab buttons for the main tabs
+      tabBarButton: (props) => {
+        if (
+          route.name === 'ViewAccount' ||
+          route.name === 'AddAccount' ||
+          route.name === 'ViewTransactions' ||
+          route.name === 'ApplyLoan' ||
+          route.name === 'SendComplaints' ||
+          route.name === 'ManageComplaints' ||
+          route.name === 'ExchangeRate' ||
+          route.name === 'AddFamily'
+        ) {
+          return null;
+        }
+        
+        // Use CrossPlatformTouchable for consistent behavior
+        return <CrossPlatformTouchable {...props} activeOpacity={0.6} />;
+      },
+    })}
+  >
+    <Tab.Screen name="Dashboard">
+      {props => <FamilyDashboard {...props} username={username} first_name={first_name} last_name={last_name} />}
+    </Tab.Screen>
+    <Tab.Screen name="SendMoney">
+      {props => <FamilyMakeTransaction {...props} username={username} />}
+    </Tab.Screen>
+    <Tab.Screen name="Profile">
+      {props => <UserProfile {...props} username={username} navigation={navigation} />}
+    </Tab.Screen>
+  </Tab.Navigator>
+)
 
-    getUsername();
-  }, []);
-
-  // Handle logout process
-  const handleLogout = async () => {
-    setIsLoading(true);
-    
-    try {
-      // Clear all stored authentication data
-      await AsyncStorage.multiRemove([
-        'sessionid',
-        'userType',
-        'username',
-        'isLoggedIn'
-      ]);
-      
-      // Navigate back to home screen
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Home' }],
-      });
-    } catch (error) {
-      console.error('Logout error:', error);
-      Alert.alert('Error', 'Something went wrong. Please try again.');
-    } finally {
-      setIsLoading(false);
-      setMenuVisible(false);
-    }
-  };
-
-  // Custom tab bar button for the profile menu
-  const ProfileButton = ({ onPress }: { onPress: () => void }) => (
-    <TouchableOpacity 
-      style={styles.profileButton} 
-      onPress={onPress}
-    >
-      <Icon name="account-circle" size={28} color="#00a8ff" />
-    </TouchableOpacity>
-  );
+const UserBase = ({ route, navigation }: any) => {
+  const { username, first_name, last_name } = route.params || {}
 
   return (
-    <>
-      <Tab.Navigator
-        screenOptions={({ route }) => ({
-          tabBarIcon: ({ focused, color, size }) => {
-            let iconName = '';
-            
-            if (route.name === 'Dashboard') {
-              iconName = focused ? 'view-dashboard' : 'view-dashboard-outline';
-            } else if (route.name === 'SendMoney') {
-              iconName = focused ? 'bank-transfer' : 'bank-transfer-outline';
-            }
-            
-            return <Icon name={iconName} size={size} color={color} />;
+    <View style={{ flex: 1 }}>
+      {/* Background Image - Place it here so it's visible across all screens */}
+      <Image
+        source={require('../../assets/background/bg1.png')}
+        style={components.backgroundImage}
+        resizeMode="cover"
+        pointerEvents="none"
+      />
+      {/* Overlay for glass effect */}
+      <View style={components.gradient} pointerEvents="none" />
+      
+      <Stack.Navigator 
+        screenOptions={{ 
+          headerShown: false,
+          contentStyle: { 
+            backgroundColor: 'transparent' // Make Stack screen backgrounds transparent
           },
-          tabBarActiveTintColor: '#00a8ff',
-          tabBarInactiveTintColor: 'gray',
-          tabBarLabelStyle: {
-            fontSize: 12,
-            fontWeight: '500'
-          },
-          headerShown: false
-        })}
+          animation: 'fade',
+          animationDuration: 200
+        }}
       >
-        <Tab.Screen 
-          name="Dashboard" 
-          component={FamilyDashboard} 
-          options={{
-            title: 'Dashboard'
-          }}
+        <Stack.Screen name="Tabs">
+          {props => <TabScreens {...props} username={username} first_name={first_name} last_name={last_name} navigation={navigation} />}
+        </Stack.Screen>
+        
+        {/* Additional screens that need to be outside the tab navigator */}
+        <Stack.Screen 
+          name="AddFamily" 
+          component={AddFamily}
+          initialParams={{ username }}
         />
-        <Tab.Screen 
-          name="SendMoney" 
-          component={FamilyMakeTransaction} 
-          options={{
-            title: 'Send Money'
-          }}
-        />
-        <Tab.Screen 
-          name="Profile" 
-          component={View} // Dummy component, never shown
-          options={{
-            tabBarButton: (props) => (
-              <ProfileButton onPress={() => setMenuVisible(true)} />
-            )
-          }}
-          listeners={{
-            tabPress: (e) => {
-              // Prevent default action
-              e.preventDefault();
-              // Open menu modal
-              setMenuVisible(true);
-            },
-          }}
-        />
-      </Tab.Navigator>
+      </Stack.Navigator>
+    </View>
+  )
+}
 
-      {/* User Menu Modal */}
-      <Modal
-        visible={menuVisible}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setMenuVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <SafeAreaView style={styles.menuContainer}>
-            <View style={styles.menuHeader}>
-              <Text style={styles.menuUsername}>{username}</Text>
-              <Text style={styles.menuSubtitle}>Family Member Account</Text>
-            </View>
-            
-            <View style={styles.menuOptions}>
-              <TouchableOpacity 
-                style={styles.menuItem}
-                onPress={() => {
-                  setMenuVisible(false);
-                  // navigation.navigate('ViewTransactions');
-                  // Not implemented for family members
-                  Alert.alert('Info', 'Feature not available for family members');
-                }}
-              >
-                <Icon name="history" size={24} color="#333" />
-                <Text style={styles.menuItemText}>Transaction History</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity 
-                style={styles.menuItem}
-                onPress={() => {
-                  setMenuVisible(false);
-                  // navigation.navigate('SendComplaints');
-                  // Not implemented for family members
-                  Alert.alert('Info', 'Feature not available for family members');
-                }}
-              >
-                <Icon name="message-alert" size={24} color="#333" />
-                <Text style={styles.menuItemText}>Send Complaint</Text>
-              </TouchableOpacity>
-            </View>
-            
-            <TouchableOpacity 
-              style={styles.logoutButton}
-              onPress={handleLogout}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <>
-                  <Icon name="logout" size={20} color="#fff" />
-                  <Text style={styles.logoutText}>Logout</Text>
-                </>
-              )}
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={styles.closeButton}
-              onPress={() => setMenuVisible(false)}
-            >
-              <Text style={styles.closeButtonText}>Close</Text>
-            </TouchableOpacity>
-          </SafeAreaView>
-        </View>
-      </Modal>
-    </>
-  );
-};
-
-const styles = StyleSheet.create({
-  // Same styles as UserBase
-  profileButton: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
-  },
-  menuContainer: {
-    backgroundColor: 'white',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 24,
-    minHeight: '50%',
-  },
-  menuHeader: {
-    alignItems: 'center',
-    marginBottom: 24,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  menuUsername: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 4,
-  },
-  menuSubtitle: {
-    fontSize: 16,
-    color: '#666',
-  },
-  menuOptions: {
-    marginBottom: 24,
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  menuItemText: {
-    marginLeft: 16,
-    fontSize: 18,
-    color: '#333',
-  },
-  logoutButton: {
-    flexDirection: 'row',
-    backgroundColor: '#f44336',
-    borderRadius: 12,
-    padding: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  logoutText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: '600',
-    marginLeft: 8,
-  },
-  closeButton: {
-    padding: 16,
-    alignItems: 'center',
-  },
-  closeButtonText: {
-    color: '#666',
-    fontSize: 16,
-  },
-});
-
-export default FamilyBase;
+export default UserBase
