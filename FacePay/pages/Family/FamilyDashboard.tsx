@@ -27,26 +27,11 @@ import { IS_IOS, FONT_FAMILY } from '../../utils/platformUtils'
 const FamilyDashboard = ({ username }) => {
   const navigation = useNavigation()
   const [accounts, setAccounts] = useState([])
-  const [, forceUpdate] = useState({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [refreshing, setRefreshing] = useState(false)
   const [fullName, setFullName] = useState('')
-
-  // Add this effect for multiple re-renders
-  useEffect(() => {
-    // Force an immediate re-render
-    forceUpdate({})
-    
-    // Create a sequence of re-renders with increasing delays
-    const timers = [100, 300, 600].map((delay) => 
-      setTimeout(() => {
-        forceUpdate({})
-      }, delay)
-    )
-    
-    return () => timers.forEach(timer => clearTimeout(timer))
-  }, [])
+  const [renderKey, setRenderKey] = useState(0)
 
   // Fetch user details for full name
   const fetchUserDetails = async () => {
@@ -112,24 +97,24 @@ const FamilyDashboard = ({ username }) => {
     setRefreshing(false)
   }
 
-  // This will run both on initial mount and whenever the screen comes into focus
+  // Enhanced useFocusEffect to force re-render when screen focuses
   useFocusEffect(
     useCallback(() => {
-      console.log("Dashboard in focus - refreshing data");
+      console.log("Family Dashboard in focus - refreshing data");
+      setRenderKey(prevKey => prevKey + 1);
       fetchUserDetails();
       fetchAccounts();
       
-      // Optional: Return a cleanup function if needed
       return () => {
         // Any cleanup code if necessary
       };
-    }, []) // Empty dependency array means this runs every time the screen is focused
+    }, []) 
   );
 
   const totalBalance = accounts.reduce((sum, acc) => sum + (Number(acc.balance) || 0), 0)
 
   return (
-    <SafeAreaView style={layout.safeArea} edges={['top', 'left', 'right']}>
+    <SafeAreaView key={renderKey} style={layout.safeArea} edges={['top', 'left', 'right']}>
       <StatusBar style="light" backgroundColor="transparent" translucent />
       {/* Background Image */}
       <Image

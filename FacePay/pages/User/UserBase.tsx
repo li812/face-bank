@@ -2,7 +2,7 @@ import React from 'react'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons'
-import { StyleSheet } from 'react-native'
+import { StyleSheet, View, Image } from 'react-native'
 
 // Import components from the app
 import UserDashboard from './UserDashboard'
@@ -130,26 +130,39 @@ const UserBase = ({ route, navigation }: any) => {
   const { username, first_name, last_name } = route.params || {}
 
   return (
-    
-    <Stack.Navigator 
-      screenOptions={{ 
-        headerShown: false,
-        contentStyle: { backgroundColor: IS_IOS ? 'transparent' : 'rgba(0,0,0,0.01)' },
-        animation: 'fade',
-        animationDuration: 200
-      }}
-    >
-      <Stack.Screen name="Tabs">
-        {props => <TabScreens {...props} username={username} first_name={first_name} last_name={last_name} navigation={navigation} />}
-      </Stack.Screen>
-      
-      {/* Additional screens that need to be outside the tab navigator */}
-      <Stack.Screen 
-        name="AddFamily" 
-        component={AddFamily}
-        initialParams={{ username }}
+    <View style={{ flex: 1 }}>
+      {/* Background Image - Place it here so it's visible across all screens */}
+      <Image
+        source={require('../../assets/background/bg1.png')}
+        style={components.backgroundImage}
+        resizeMode="cover"
+        pointerEvents="none"
       />
-    </Stack.Navigator>
+      {/* Overlay for glass effect */}
+      <View style={components.gradient} pointerEvents="none" />
+      
+      <Stack.Navigator 
+        screenOptions={{ 
+          headerShown: false,
+          contentStyle: { 
+            backgroundColor: 'transparent' // Make Stack screen backgrounds transparent
+          },
+          animation: 'fade',
+          animationDuration: 200
+        }}
+      >
+        <Stack.Screen name="Tabs">
+          {props => <TabScreens {...props} username={username} first_name={first_name} last_name={last_name} navigation={navigation} />}
+        </Stack.Screen>
+        
+        {/* Additional screens that need to be outside the tab navigator */}
+        <Stack.Screen 
+          name="AddFamily" 
+          component={AddFamily}
+          initialParams={{ username }}
+        />
+      </Stack.Navigator>
+    </View>
   )
 }
 

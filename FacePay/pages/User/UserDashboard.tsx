@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useRef } from 'react'
 import { 
   View, 
   Text, 
@@ -31,22 +31,8 @@ const UserDashboard = ({ username }) => {
   const [error, setError] = useState('')
   const [refreshing, setRefreshing] = useState(false)
   const [fullName, setFullName] = useState('')
-  const [, forceUpdate] = useState({})
-
-  // Add this effect to trigger re-render when component mounts
-  useEffect(() => {
-    // Force an immediate re-render
-    forceUpdate({})
-    
-    // Create a sequence of re-renders with increasing delays
-    const timers = [100, 300, 600].map((delay) => 
-      setTimeout(() => {
-        forceUpdate({});
-      }, delay)
-    );
-    
-    return () => timers.forEach(timer => clearTimeout(timer));
-  }, [])
+  // Add a key state to force re-render
+  const [renderKey, setRenderKey] = useState(0)
 
   // Fetch user details for full name
   const fetchUserDetails = async () => {
@@ -78,24 +64,25 @@ const UserDashboard = ({ username }) => {
     setRefreshing(false)
   }
 
-  // This will run both on initial mount and whenever the screen comes into focus
+  // Enhanced useFocusEffect to force re-render when screen focuses
   useFocusEffect(
     useCallback(() => {
       console.log("Dashboard in focus - refreshing data");
+      // Increment the key to force re-render
+      setRenderKey(prevKey => prevKey + 1);
       fetchUserDetails();
       fetchAccounts();
       
-      // Optional: Return a cleanup function if needed
       return () => {
         // Any cleanup code if necessary
       };
-    }, []) // Empty dependency array means this runs every time the screen is focused
+    }, []) 
   );
 
   const totalBalance = accounts.reduce((sum, acc) => sum + (Number(acc.balance) || 0), 0)
 
   return (
-    <SafeAreaView style={layout.safeArea} edges={['top', 'left', 'right']}>
+    <SafeAreaView key={renderKey} style={layout.safeArea} edges={['top', 'left', 'right']}>
       <StatusBar style="light" backgroundColor="transparent" translucent />
       {/* Background Image */}
       <Image
