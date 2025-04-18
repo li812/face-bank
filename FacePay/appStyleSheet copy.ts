@@ -17,57 +17,30 @@ export const PLATFORM = {
   FONT_FAMILY
 };
 
-// Colors - Enhanced with a more systematic approach
+// Colors
 export const colors = {
-  // Primary palette with consistent naming
   primary: 'rgb(0, 195, 255)',
   primaryDark: '#0091c7',
   primaryLight: 'rgba(0, 171, 233, 0.08)',
-  primaryGlass: 'rgba(0, 171, 233, 0.2)',
-  primaryBorder: 'rgba(0, 110, 157, 0.42)',
-  
-  // Secondary palette
   secondary: '#e53935',
   secondaryDark: '#c62828',
-  secondaryLight: 'rgba(229, 57, 53, 0.1)',
-  
-  // Neutral colors
   text: '#222',
   textLight: '#666',
-  textMuted: 'rgba(25, 25, 25, 0.7)',
   white: '#fff',
   black: '#000',
-  
-  // Semantic colors
   error: 'red',
   success: '#4CAF50',
-  warning: '#FF9800',
-  info: '#2196F3',
-  
-  // Transparency system
   transparent: 'transparent',
   card: 'rgba(255, 255, 255, 0.13)',
   cardHeader: 'rgba(255, 255, 255, 0.08)',
   buttonOutline: 'rgba(255, 255, 255, 0.08)',
   inputBg: 'rgba(255, 255, 255, 0.75)',
+  inputBorder: 'rgba(0, 110, 157, 0.42)',
   modalOverlay: 'rgba(0, 0, 0, 0.5)',
-  
-  // Dark overlay shades
-  overlayLight: 'rgba(0, 0, 0, 0.3)',
-  overlayMedium: 'rgba(0, 0, 0, 0.5)',
-  overlayDark: 'rgba(0, 0, 0, 0.7)',
 };
 
 // Re-export the createShadow function from platformUtils
 export { createShadow };
-
-// Standard shadow levels for consistent elevation
-export const shadows = {
-  subtle: (color = colors.black) => createShadow(color, 0.1, 2, 4),
-  medium: (color = colors.black) => createShadow(color, 0.2, 4, 8),
-  pronounced: (color = colors.black) => createShadow(color, 0.3, 6, 12),
-  elevated: (color = colors.black) => createShadow(color, 0.4, 8, 16),
-};
 
 // Typography styles remain the same, just use FONT_FAMILY from platformUtils
 export const typography = {
@@ -76,7 +49,7 @@ export const typography = {
     fontWeight: '700',
     color: colors.primary,
     letterSpacing: 1.2,
-    textShadowColor: colors.overlayLight, // Using standardized overlay
+    textShadowColor: 'rgba(0, 0, 0, 0.15)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 6,
     fontFamily: FONT_FAMILY.bold,
@@ -216,16 +189,17 @@ export const components = {
     borderRadius: 24, // Your desired border radius
     overflow: 'hidden', // Critical for BlurView to respect borderRadius
     backgroundColor: colors.card,
+    overflow: 'hidden',
     position: 'relative',
     alignItems: 'center',
-    ...shadows.medium(colors.primary), // Using the shadow system
+    ...createShadow(colors.primary, 0.1, 3, 12),
   },
   input: {
     width: '100%',
     backgroundColor: colors.inputBg,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: colors.primaryBorder,
+    borderColor: colors.inputBorder,
     color: colors.text,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -299,16 +273,41 @@ export const components = {
     backgroundColor: colors.modalOverlay,
     justifyContent: 'center',
     alignItems: 'center',
-    backdropFilter: IS_IOS ? 'blur(5px)' : undefined,
   },
   modalContainer: {
     backgroundColor: colors.white,
     borderRadius: 16,
-    padding: 24,
+    padding: 20,
     alignItems: 'center',
-    width: '85%',
-    maxWidth: 420,
-    ...shadows.elevated(),
+    width: '80%',
+    maxWidth: 400,
+    ...createShadow('#000', 0.2, 8, 16),
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: '#333',
+    fontFamily: FONT_FAMILY.bold,
+  },
+  modalMessage: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+    color: '#555',
+    fontFamily: FONT_FAMILY.regular,
+  },
+  modalButton: {
+    backgroundColor: colors.primary,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  modalButtonText: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: '600',
+    fontFamily: FONT_FAMILY.medium,
   },
   footer: {
     position: 'absolute',
@@ -491,7 +490,7 @@ export const dashboard = {
     fontFamily: FONT_FAMILY.bold,
   },
   balanceLabel: {
-    color: colors.textMuted,
+    color: 'rgba(25, 25, 25, 0.7)',
     fontSize: 14,
     marginTop: 8,
     marginBottom: 2,
@@ -701,7 +700,7 @@ export const exchangeRate = {
     backgroundColor: colors.inputBg,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: colors.primaryBorder,
+    borderColor: colors.inputBorder,
     color: colors.text,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -813,7 +812,7 @@ export const complaints = {
     backgroundColor: 'rgba(255, 255, 255, 0.66)',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: colors.primaryBorder,
+    borderColor: 'rgba(0, 110, 157, 0.42)',
     color: colors.text,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -1108,20 +1107,9 @@ export const home = {
   }
 };
 
-// Add interaction state styles for buttons and interactive elements
-export const interactionStates = {
-  buttonHover: {
-    opacity: 0.9,
-    transform: [{ scale: 1.02 }],
-  },
-  buttonActive: {
-    opacity: 0.8,
-    transform: [{ scale: 0.98 }],
-  },
-  cardHover: {
-    ...shadows.pronounced(colors.primary),
-  },
-};
+
+
+// Add this after the existing style sections (e.g. after transaction or home)
 
 // Login screen styles
 export const login = {
@@ -1144,12 +1132,12 @@ export const login = {
     flex: 1 
   },
   accountTypeIndicator: {
-    backgroundColor: colors.primaryGlass,
+    backgroundColor: 'rgba(0, 171, 233, 0.2)',
     borderRadius: 8,
     padding: 10,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: colors.primaryBorder,
+    borderColor: 'rgba(0, 171, 233, 0.4)',
   },
   accountTypeText: {
     color: colors.white,
@@ -1203,14 +1191,14 @@ export const register = {
     bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.overlayLight,
+    backgroundColor: 'rgba(0,0,0,0.3)',
   },
   faceOverlayText: {
     color: colors.white,
     fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
-    backgroundColor: colors.overlayDark,
+    backgroundColor: 'rgba(0,0,0,0.7)',
     padding: 10,
     borderRadius: 5,
     fontFamily: FONT_FAMILY.bold,
@@ -1234,7 +1222,7 @@ export const register = {
     marginBottom: 20,
   },
   flipButton: {
-    backgroundColor: colors.overlayMedium,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 12,
@@ -1258,7 +1246,7 @@ export const register = {
     borderColor: colors.white,
   },
   retakeButton: {
-    backgroundColor: colors.overlayMedium,
+    backgroundColor: 'rgba(255,255,255,0.2)',
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 8,
@@ -1269,17 +1257,7 @@ export const register = {
   },
 };
 
-// Add animation timing presets
-export const animations = {
-  timing: {
-    fast: 150,
-    normal: 300,
-    slow: 500,
-  },
-  easing: {
-    // Add Easing function references if needed
-  },
-};
+
 
 // Touchable component helper - to create a platform-specific touchable style
 export const getTouchableComponent = () => {
@@ -1289,6 +1267,8 @@ export const getTouchableComponent = () => {
     return require('react-native').TouchableOpacity;
   }
 };
+
+
 
 // Make sure to add register to the default export
 export default {
@@ -1309,10 +1289,7 @@ export default {
   home,
   login,
   register,     
-  interactionStates,
   createShadow,
   PLATFORM,
   getTouchableComponent,
-  shadows,
-  animations,
 };
