@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState, useCallback } from 'react'
 import { 
   View, 
   Text, 
@@ -18,6 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { StatusBar } from 'expo-status-bar'
 import { MaterialIcons } from '@expo/vector-icons'
 import { CameraView, useCameraPermissions, CameraType } from 'expo-camera'
+import { useFocusEffect } from '@react-navigation/native'
 
 // Import unified styling
 import styleSheet, { 
@@ -57,53 +58,55 @@ const UserMakeTransaction = ({ navigation, username }) => {
   const [isCameraActive, setIsCameraActive] = useState(false)
   const cameraRef = useRef(null)
   const [facing, setFacing] = useState(CameraType?.front || 'front')
+  const [renderKey, setRenderKey] = useState(0)
 
-  // Fetch accounts and branches
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true)
-      try {
-        // Step 1: Fetch user accounts
-        const accRes = await axios.get(`${API_URL}/userAccount`, { 
-          headers: { Accept: 'application/json' } 
-        })
-        const userAccounts = accRes.data.user_account || [];
-        setAccounts(userAccounts)
-        
-        // Step 2: Fetch all branches
-        const branchRes = await axios.get(`${API_URL}/branches`, { 
-          headers: { Accept: 'application/json' } 
-        })
-        const allBranches = branchRes.data.branches || [];
-        
-        // Step 3: Extract unique branch names from user accounts
-        const userBranchNames = new Set(userAccounts.map(acc => acc.branch_name));
-        
-        // Step 4: Filter branches to only include those whose names match
-        const userBranches = allBranches.filter(branch => 
-          userBranchNames.has(branch.branch_name)
-        );
-        
-        console.log(`Filtered to ${userBranches.length} branches out of ${allBranches.length} total branches`);
-        setBranches(userBranches)
-        setError('')
-      } catch (err) {
-        console.error("Error fetching data:", err);
-        setError('Failed to load accounts or branches')
-      }
-      setLoading(false)
+  const fetchData = async () => {
+    setLoading(true)
+    try {
+      const accRes = await axios.get(`${API_URL}/userAccount`, { 
+        headers: { Accept: 'application/json' } 
+      })
+      const userAccounts = accRes.data.user_account || [];
+      setAccounts(userAccounts)
+      
+      const branchRes = await axios.get(`${API_URL}/branches`, { 
+        headers: { Accept: 'application/json' } 
+      })
+      const allBranches = branchRes.data.branches || [];
+      
+      const userBranchNames = new Set(userAccounts.map(acc => acc.branch_name));
+      
+      const userBranches = allBranches.filter(branch => 
+        userBranchNames.has(branch.branch_name)
+      );
+      
+      console.log(`Filtered to ${userBranches.length} branches out of ${allBranches.length} total branches`);
+      setBranches(userBranches)
+      setError('')
+    } catch (err) {
+      console.error("Error fetching data:", err);
+      setError('Failed to load accounts or branches')
     }
-    fetchData()
-  }, [])
+    setLoading(false)
+  }
 
-  // Step navigation
+  useFocusEffect(
+    useCallback(() => {
+      console.log("Transaction screen in focus - refreshing data");
+      setRenderKey(prevKey => prevKey + 1);
+      fetchData();
+      
+      return () => {
+        // Any cleanup code if necessary
+      };
+    }, []) 
+  );
+
   const nextStep = () => setCurrentStep(s => s + 1)
   const prevStep = () => setCurrentStep(s => s - 1)
 
-  // Form change handler
   const handleChange = (key, value) => setForm({ ...form, [key]: value })
 
-  // Step 5: Review & Confirm
   const handleReview = () => {
     setReviewData({
       ...form,
@@ -113,7 +116,6 @@ const UserMakeTransaction = ({ navigation, username }) => {
     nextStep()
   }
 
-  // Step 6: Face Verification
   const handleFaceVerify = async () => {
     if (!permission?.granted) {
       await requestPermission()
@@ -138,7 +140,6 @@ const UserMakeTransaction = ({ navigation, username }) => {
         headers: { 'Content-Type': 'multipart/form-data' }
       })
       
-      // Log the verification response for debugging
       console.log('Face verification response:', res.data);
       
       if (res.data && res.data.success) {
@@ -146,7 +147,6 @@ const UserMakeTransaction = ({ navigation, username }) => {
         setIsCameraActive(false)
         nextStep()
       } else {
-        // Handle verification failure
         setIsCameraActive(false)
         const errorMsg = res.data?.message || 'Face verification failed';
         Alert.alert(
@@ -189,12 +189,10 @@ const UserMakeTransaction = ({ navigation, username }) => {
     setSubmitting(false)
   }
 
-  // Step 5: Submit transaction (initiate)
   const handleInitiateTransaction = async () => {
     setSubmitting(true)
     setError('')
     try {
-      // Create form data with proper string values for Android compatibility
       const data = new FormData()
       data.append('receiver_account_number', String(form.receiver_account_number))
       data.append('receiver_name', String(form.receiver_name))
@@ -202,7 +200,6 @@ const UserMakeTransaction = ({ navigation, username }) => {
       data.append('branch_name', String(form.branch_name))
       data.append('amount', String(form.amount)
       )
-      // Log the request for debugging
       console.log('Sending data:', {
         receiver_account_number: form.receiver_account_number,
         receiver_name: form.receiver_name,
@@ -218,10 +215,9 @@ const UserMakeTransaction = ({ navigation, username }) => {
         }
       })
       
-      // Log the response for debugging
       console.log('Response:', res.data);
       
-      nextStep() // Go to face verification
+      nextStep()
     } catch (err) {
       console.error('Transaction error:', err.message);
       if (err.response) {
@@ -234,16 +230,13 @@ const UserMakeTransaction = ({ navigation, username }) => {
     setSubmitting(false)
   }
 
-  // Step 7: OTP Verification
   const handleOtpVerify = async () => {
     setOtpSubmitting(true)
     setError('')
     try {
-      // Create form data with proper string values for Android compatibility
       const data = new FormData()
-      data.append('otp', String(otp)) // Convert to string explicitly for Android
+      data.append('otp', String(otp))
 
-      // Log the request for debugging
       console.log('Sending OTP data:', {
         otp: otp
       });
@@ -255,7 +248,6 @@ const UserMakeTransaction = ({ navigation, username }) => {
         }
       })
       
-      // Log the response for debugging
       console.log('OTP Response:', res.data);
       
       if (res.data && (res.data.success || res.data.message?.toLowerCase().includes('success'))) {
@@ -275,7 +267,6 @@ const UserMakeTransaction = ({ navigation, username }) => {
     setOtpSubmitting(false)
   }
 
-  // Reset on success
   const handleDone = () => {
     setCurrentStep(1)
     setForm({
@@ -307,7 +298,6 @@ const UserMakeTransaction = ({ navigation, username }) => {
     navigation.navigate('Dashboard')
   }
 
-  // Camera permission UI
   if (isCameraActive) {
     if (!permission) return <View />
     if (!permission.granted) {
@@ -325,7 +315,6 @@ const UserMakeTransaction = ({ navigation, username }) => {
     }
     return (
       <View style={[camera.cameraContainer, { zIndex: 999 }]}>
-        {/* Background Image */}
         <Image
           source={require('../../assets/background/bg1.png')}
           style={[StyleSheet.absoluteFill, { opacity: 0.3 }]}
@@ -367,7 +356,7 @@ const UserMakeTransaction = ({ navigation, username }) => {
   }
 
   return (
-    <SafeAreaView style={layout.safeArea} edges={['top', 'left', 'right']}>
+    <SafeAreaView key={renderKey} style={layout.safeArea} edges={['top', 'left', 'right']}>
       <StatusBar style="light" backgroundColor="transparent" translucent />
       <Image
         source={require('../../assets/background/bg1.png')}
