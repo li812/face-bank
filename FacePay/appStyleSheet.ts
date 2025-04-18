@@ -19,43 +19,46 @@ export const PLATFORM = {
 
 // Colors - Enhanced with a more systematic approach
 export const colors = {
-  // Primary palette with consistent naming
-  primary: 'rgb(0, 195, 255)',
-  primaryDark: '#0091c7',
-  primaryLight: 'rgba(0, 171, 233, 0.08)',
-  primaryGlass: 'rgba(0, 171, 233, 0.2)',
-  primaryBorder: 'rgba(0, 110, 157, 0.42)',
+  // Primary palette with enhanced contrast
+  primary: '#0088cc', // Darker blue with better contrast (4.6:1 against white)
+  primaryDark: '#006699', // Even darker for better contrast (5.9:1)
+  primaryLight: 'rgba(0, 136, 204, 0.15)', // Adjusted opacity for better readability
+  primaryGlass: 'rgba(0, 136, 204, 0.25)',
+  primaryBorder: 'rgba(0, 110, 157, 0.5)', // Higher opacity for better visibility
   
-  // Secondary palette
-  secondary: '#e53935',
-  secondaryDark: '#c62828',
-  secondaryLight: 'rgba(229, 57, 53, 0.1)',
+  // Secondary palette with improved contrast
+  secondary: '#d32f2f', // Slightly darker red with better contrast
+  secondaryDark: '#b71c1c',
+  secondaryLight: 'rgba(211, 47, 47, 0.15)',
   
-  // Neutral colors
-  text: '#222',
-  textLight: '#666',
-  textMuted: 'rgba(25, 25, 25, 0.7)',
-  white: '#fff',
-  black: '#000',
+  // Neutral colors with better differentiation
+  text: '#222222',
+  textLight: '#555555', // Darker than before for better readability
+  textMuted: 'rgba(34, 34, 34, 0.75)', // Higher opacity for better contrast
+  textInverse: '#ffffff', // For text on dark backgrounds
   
-  // Semantic colors
-  error: 'red',
-  success: '#4CAF50',
-  warning: '#FF9800',
-  info: '#2196F3',
+  // Pure colors
+  white: '#ffffff',
+  black: '#000000',
   
-  // Transparency system
+  // Enhanced semantic colors with better contrast
+  error: '#d32f2f', // Matching secondary for consistency
+  success: '#2e7d32', // Darker green for better contrast
+  warning: '#f57c00', // Darker orange for better contrast
+  info: '#0277bd', // Darker blue for better contrast
+  
+  // Improved transparency system with higher contrast
   transparent: 'transparent',
-  card: 'rgba(255, 255, 255, 0.13)',
-  cardHeader: 'rgba(255, 255, 255, 0.08)',
-  buttonOutline: 'rgba(255, 255, 255, 0.08)',
-  inputBg: 'rgba(255, 255, 255, 0.75)',
-  modalOverlay: 'rgba(0, 0, 0, 0.5)',
+  card: 'rgba(255, 255, 255, 0.18)', // Increased opacity
+  cardHeader: 'rgba(255, 255, 255, 0.12)',
+  buttonOutline: 'rgba(255, 255, 255, 0.14)',
+  inputBg: 'rgba(255, 255, 255, 0.85)', // Higher opacity for better readability
+  modalOverlay: 'rgba(0, 0, 0, 0.6)', // Higher opacity for better distinction
   
-  // Dark overlay shades
-  overlayLight: 'rgba(0, 0, 0, 0.3)',
-  overlayMedium: 'rgba(0, 0, 0, 0.5)',
-  overlayDark: 'rgba(0, 0, 0, 0.7)',
+  // Standardized overlay shades
+  overlayLight: 'rgba(0, 0, 0, 0.4)', // Higher opacity for better visibility
+  overlayMedium: 'rgba(0, 0, 0, 0.6)',
+  overlayDark: 'rgba(0, 0, 0, 0.75)',
 };
 
 // Re-export the createShadow function from platformUtils
@@ -218,6 +221,9 @@ export const components = {
     backgroundColor: colors.card,
     position: 'relative',
     alignItems: 'center',
+    // Add subtle border for better definition
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
     ...shadows.medium(colors.primary), // Using the shadow system
   },
   input: {
@@ -231,14 +237,30 @@ export const components = {
     paddingVertical: 12,
     marginBottom: 12,
     fontSize: 16,
-    // Remove default underline on Android
+    // Improve focus state visibility
+    shadowColor: colors.primary,
+    // Platform-specific adjustments
     ...(!IS_IOS && { 
       underlineColorAndroid: 'transparent',
-      padding: 10,  // Android needs more padding
+      padding: 10,
     }),
-    // Match text layout across platforms
     fontFamily: FONT_FAMILY.regular,
     textAlignVertical: 'center',
+  },
+  inputLabel: {
+    color: colors.textLight,
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 4,
+    marginLeft: 2,
+    fontFamily: FONT_FAMILY.medium,
+  },
+  inputError: {
+    color: colors.error,
+    fontSize: 14,
+    marginTop: 4,
+    marginLeft: 2,
+    fontFamily: FONT_FAMILY.regular,
   },
   // Unified touchable styles
   touchable: {
@@ -268,6 +290,10 @@ export const components = {
     fontWeight: '600',
     letterSpacing: 1,
     fontFamily: FONT_FAMILY.medium,
+    // Add subtle text shadow to improve legibility on colored backgrounds
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   buttonOutline: {
     width: '100%',
@@ -299,7 +325,7 @@ export const components = {
     backgroundColor: colors.modalOverlay,
     justifyContent: 'center',
     alignItems: 'center',
-    backdropFilter: IS_IOS ? 'blur(5px)' : undefined,
+    backdropFilter: IS_IOS ? 'blur(8px)' : undefined, // Increased blur for better separation
   },
   modalContainer: {
     backgroundColor: colors.white,
@@ -308,7 +334,48 @@ export const components = {
     alignItems: 'center',
     width: '85%',
     maxWidth: 420,
-    ...shadows.elevated(),
+    ...shadows.elevated(colors.black), // Using black shadow for better visibility
+    borderWidth: 1, // Adding border for better definition
+    borderColor: 'rgba(0, 0, 0, 0.1)', // Subtle border
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    color: colors.text, // Using standard text color for consistency
+    textAlign: 'center',
+    fontFamily: FONT_FAMILY.bold,
+  },
+  modalContent: {
+    width: '100%', 
+    paddingVertical: 12,
+  },
+  modalButton: {
+    backgroundColor: colors.primary,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    marginTop: 16,
+    minWidth: 120,
+    alignItems: 'center',
+  },
+  modalButtonText: {
+    color: colors.white, 
+    fontWeight: 'bold',
+    fontSize: 16,
+    fontFamily: FONT_FAMILY.medium,
+    letterSpacing: 0.5,
+  },
+  modalDismissButton: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   footer: {
     position: 'absolute',
@@ -484,7 +551,7 @@ export const dashboard = {
     fontWeight: 'bold',
     letterSpacing: 1.5,
     marginBottom: 8,
-    textShadowColor: 'rgba(0, 171, 233, 0.25)',
+    textShadowColor: 'rgba(0, 136, 204, 0.25)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 8,
     textAlign: 'center',
@@ -617,7 +684,7 @@ export const transactions = {
     marginLeft: 10,
     padding: 6,
     borderRadius: 12,
-    backgroundColor: 'rgba(0,171,233,0.08)',
+    backgroundColor: 'rgba(0,136,204,0.15)',
     alignSelf: 'flex-start'
   },
   filterRow: {
@@ -744,7 +811,7 @@ export const exchangeRate = {
     marginBottom: 6,
     paddingVertical: 2,
     borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(0,171,233,0.13)',
+    borderBottomColor: 'rgba(0,136,204,0.15)',
   },
   currency: {
     color: colors.text,
@@ -990,7 +1057,7 @@ export const transaction = {
   // Success modal styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -1036,7 +1103,7 @@ export const home = {
     top: 0,
     bottom: 0,
     zIndex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)'
+    backgroundColor: 'rgba(0,0,0,0.6)'
   },
   logoContainer: {
     position: 'absolute',
@@ -1111,15 +1178,39 @@ export const home = {
 // Add interaction state styles for buttons and interactive elements
 export const interactionStates = {
   buttonHover: {
-    opacity: 0.9,
-    transform: [{ scale: 1.02 }],
+    opacity: 0.92,
+    backgroundColor: colors.primaryDark,
   },
   buttonActive: {
-    opacity: 0.8,
+    opacity: 0.85,
     transform: [{ scale: 0.98 }],
+  },
+  buttonFocus: {
+    borderWidth: 2,
+    borderColor: colors.primaryLight,
+    // Outline effect for keyboard navigation
+    shadowColor: colors.primary,
+    shadowOpacity: 0.5,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 4,
+  },
+  inputFocus: {
+    borderColor: colors.primary,
+    backgroundColor: colors.white,
+    shadowColor: colors.primary,
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 2,
   },
   cardHover: {
     ...shadows.pronounced(colors.primary),
+    borderColor: 'rgba(255, 255, 255, 0.35)',
+  },
+  cardActive: {
+    ...shadows.medium(colors.primary),
+    transform: [{ scale: 0.99 }],
   },
 };
 
