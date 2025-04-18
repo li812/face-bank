@@ -1,9 +1,10 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { StyleSheet } from 'react-native'
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
-import { StatusBar } from 'expo-status-bar' // <-- Import from expo-status-bar
+import { StatusBar } from 'expo-status-bar'
+import * as SystemUI from 'expo-system-ui' // Import SystemUI
 
 // Import your screens
 import Home from './pages/Home'
@@ -15,6 +16,12 @@ import FamilyBase from './pages/Family/FamilyBase'
 const Stack = createNativeStackNavigator()
 
 const App = () => {
+  // Set background color to match your app theme
+  useEffect(() => {
+    // Force the background color to be consistent with your app's theme
+    SystemUI.setBackgroundColorAsync('#000000')
+  }, [])
+
   return (
     <SafeAreaProvider>
       <StatusBar style="light" backgroundColor="transparent" translucent />
